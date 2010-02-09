@@ -49,7 +49,7 @@ public class TileView extends View {
     public TileView(Context context, AttributeSet attrs) {
     	super (context, attrs);
     	
-    	mTileSize = 12;    	
+    	mTileSize = 24;  //TODO pull from layout file?
     }
  
     

@@ -3,15 +3,19 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
 	
-	<TextView  
-	    android:layout_width="fill_parent" 
-	    android:layout_height="wrap_content" android:text="Score = 0"/>
-	
-	<com.finercollapse.GameView
-		android:id="@+id/board"
+	<RelativeLayout
 		android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-	    tileSize="24"/>
+		android:layout_height="fill_parent">
+		<TextView  
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" android:text="Score = 0"/>
+		
+		<com.finercollapse.GameView
+			android:id="@+id/board"
+			android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    tileSize="24"/>
+	</RelativeLayout>
 	
 	<RelativeLayout
 			android:layout_width="fill_parent"

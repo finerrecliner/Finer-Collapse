@@ -35,16 +35,6 @@ public class GameView extends TileView {
     public static final int LOSE = 3;
 
     /**
-     * Current direction the snake is headed.
-     */
-    private int mDirection = NORTH;
-    private int mNextDirection = NORTH;
-    private static final int NORTH = 1;
-    private static final int SOUTH = 2;
-    private static final int EAST = 3;
-    private static final int WEST = 4;
-
-    /**
      * Labels for the drawables that will be loaded into the TileView class
      */
     private static final int RED_STAR = 1;
@@ -56,8 +46,9 @@ public class GameView extends TileView {
      * milliseconds between snake movements. This will decrease as apples are
      * captured.
      */
-    private long mScore = 0;
-    private long mMoveDelay = 600;
+    private long score = 0;
+    private long frameRate = 600;
+    
     /**
      * mLastMove: tracks the absolute time when the snake last moved, and is used
      * to determine if a move should be made based on mMoveDelay.
@@ -70,11 +61,9 @@ public class GameView extends TileView {
     private TextView mStatusText;
 
     /**
-     * mSnakeTrail: a list of Coordinates that make up the snake's body
-     * mAppleList: the secret location of the juicy apples the snake craves.
+     * board: an array that represents the entire board
      */
-    private ArrayList<Coordinate> mSnakeTrail = new ArrayList<Coordinate>();
-    private ArrayList<Coordinate> mAppleList = new ArrayList<Coordinate>();
+    private ArrayList<Coordinate> board = new ArrayList<Coordinate>(); 
 
     /**
      * Everyone needs a little randomness in their life
@@ -119,7 +108,7 @@ public class GameView extends TileView {
 
         Resources r = this.getContext().getResources();
         
-        resetTiles(4);
+        resetTiles(4); //TODO what does this do?
         loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
         loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
         loadTile(GREEN_STAR, r.getDrawable(R.drawable.greenstar));
@@ -128,27 +117,12 @@ public class GameView extends TileView {
     
 
     private void initNewGame() {
-        mSnakeTrail.clear();
-        mAppleList.clear();
+    	board.clear();
 
-        // For now we're just going to load up a short default eastbound snake
-        // that's just turned north
+    	//TODO for each tile on board, insert a random color
 
-        
-        mSnakeTrail.add(new Coordinate(7, 7));
-        mSnakeTrail.add(new Coordinate(6, 7));
-        mSnakeTrail.add(new Coordinate(5, 7));
-        mSnakeTrail.add(new Coordinate(4, 7));
-        mSnakeTrail.add(new Coordinate(3, 7));
-        mSnakeTrail.add(new Coordinate(2, 7));
-        mNextDirection = NORTH;
-
-        // Two apples to start with
-        addRandomApple();
-        addRandomApple();
-
-        mMoveDelay = 600;
-        mScore = 0;
+        frameRate = 600;
+        score = 0;
     }
 
 
@@ -181,12 +155,8 @@ public class GameView extends TileView {
     public Bundle saveState() {
         Bundle map = new Bundle();
 
-        map.putIntArray("mAppleList", coordArrayListToArray(mAppleList));
-        map.putInt("mDirection", Integer.valueOf(mDirection));
-        map.putInt("mNextDirection", Integer.valueOf(mNextDirection));
-        map.putLong("mMoveDelay", Long.valueOf(mMoveDelay));
-        map.putLong("mScore", Long.valueOf(mScore));
-        map.putIntArray("mSnakeTrail", coordArrayListToArray(mSnakeTrail));
+        map.putLong("mMoveDelay", Long.valueOf(frameRate));
+        map.putLong("mScore", Long.valueOf(score));
 
         return map;
     }
@@ -217,12 +187,8 @@ public class GameView extends TileView {
     public void restoreState(Bundle icicle) {
         setMode(PAUSE);
 
-        mAppleList = coordArrayToArrayList(icicle.getIntArray("mAppleList"));
-        mDirection = icicle.getInt("mDirection");
-        mNextDirection = icicle.getInt("mNextDirection");
-        mMoveDelay = icicle.getLong("mMoveDelay");
-        mScore = icicle.getLong("mScore");
-        mSnakeTrail = coordArrayToArrayList(icicle.getIntArray("mSnakeTrail"));
+        frameRate = icicle.getLong("mMoveDelay");
+        score = icicle.getLong("mScore");
     }
 
     /*
@@ -236,6 +202,7 @@ public class GameView extends TileView {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
+    	//TODO should be on user clicks
 
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             if (mMode == READY | mMode == LOSE) {
@@ -259,30 +226,6 @@ public class GameView extends TileView {
                 return (true);
             }
 
-            if (mDirection != SOUTH) {
-                mNextDirection = NORTH;
-            }
-            return (true);
-        }
-
-        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-            if (mDirection != NORTH) {
-                mNextDirection = SOUTH;
-            }
-            return (true);
-        }
-
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            if (mDirection != EAST) {
-                mNextDirection = WEST;
-            }
-            return (true);
-        }
-
-        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            if (mDirection != WEST) {
-                mNextDirection = EAST;
-            }
             return (true);
         }
 
@@ -324,47 +267,12 @@ public class GameView extends TileView {
             str = res.getText(R.string.mode_ready);
         }
         if (newMode == LOSE) {
-            str = res.getString(R.string.mode_lose_prefix) + mScore
+            str = res.getString(R.string.mode_lose_prefix) + score
                   + res.getString(R.string.mode_lose_suffix);
         }
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * Selects a random location within the garden that is not currently covered
-     * by the snake. Currently _could_ go into an infinite loop if the snake
-     * currently fills the garden, but we'll leave discovery of this prize to a
-     * truly excellent snake-player.
-     * 
-     */
-    private void addRandomApple() {
-        Coordinate newCoord = null;
-        boolean found = false;
-        while (!found) {
-            // Choose a new location for our apple
-            int newX = 1 + RNG.nextInt(mXTileCount - 2);
-            int newY = 1 + RNG.nextInt(mYTileCount - 2);
-            newCoord = new Coordinate(newX, newY);
-
-            // Make sure it's not already under the snake
-            boolean collision = false;
-            int snakelength = mSnakeTrail.size();
-            for (int index = 0; index < snakelength; index++) {
-                if (mSnakeTrail.get(index).equals(newCoord)) {
-                    collision = true;
-                }
-            }
-            // if we're here and there's been no collision, then we have
-            // a good location for an apple. Otherwise, we'll circle back
-            // and try again
-            found = !collision;
-        }
-        if (newCoord == null) {
-            Log.e(TAG, "Somehow ended up with a null newCoord!");
-        }
-        mAppleList.add(newCoord);
     }
 
 
@@ -376,132 +284,28 @@ public class GameView extends TileView {
         if (mMode == RUNNING) {
             long now = System.currentTimeMillis();
 
-            if (now - mLastMove > mMoveDelay) {
-                clearTiles();
-                updateWalls();
-                updateSnake();
-                updateApples();
-                mLastMove = now;
-            }
-            mRedrawHandler.sleep(mMoveDelay);
+            clearTiles();
+            updateBoard();
+            
+            mRedrawHandler.sleep(frameRate);
         }
 
     }
 
     /**
      * Draws some walls.
-     * 
+     * TODO: should create a new row
      */
-    private void updateWalls() {
+    private void updateBoard() {
         for (int x = 0; x < mXTileCount; x++) {
-            setTile(GREEN_STAR, x, 0);
-            setTile(GREEN_STAR, x, mYTileCount - 1);
-        }
-        for (int y = 1; y < mYTileCount - 1; y++) {
-            setTile(GREEN_STAR, 0, y);
-            setTile(GREEN_STAR, mXTileCount - 1, y);
+        	for (int y = 0; y < mYTileCount; y++) {
+        		int color = (RNG.nextInt(3)) + 1;
+        		setTile(color, x, y);
+        	}
         }
     }
 
-    /**
-     * Draws some apples.
-     * 
-     */
-    private void updateApples() {
-        for (Coordinate c : mAppleList) {
-            setTile(YELLOW_STAR, c.x, c.y);
-        }
-    }
-
-    /**
-     * Figure out which way the snake is going, see if he's run into anything (the
-     * walls, himself, or an apple). If he's not going to die, we then add to the
-     * front and subtract from the rear in order to simulate motion. If we want to
-     * grow him, we don't subtract from the rear.
-     * 
-     */
-    private void updateSnake() {
-        boolean growSnake = false;
-
-        // grab the snake by the head
-        Coordinate head = mSnakeTrail.get(0);
-        Coordinate newHead = new Coordinate(1, 1);
-
-        mDirection = mNextDirection;
-
-        switch (mDirection) {
-        case EAST: {
-            newHead = new Coordinate(head.x + 1, head.y);
-            break;
-        }
-        case WEST: {
-            newHead = new Coordinate(head.x - 1, head.y);
-            break;
-        }
-        case NORTH: {
-            newHead = new Coordinate(head.x, head.y - 1);
-            break;
-        }
-        case SOUTH: {
-            newHead = new Coordinate(head.x, head.y + 1);
-            break;
-        }
-        }
-
-        // Collision detection
-        // For now we have a 1-square wall around the entire arena
-        if ((newHead.x < 1) || (newHead.y < 1) || (newHead.x > mXTileCount - 2)
-                || (newHead.y > mYTileCount - 2)) {
-            setMode(LOSE);
-            return;
-
-        }
-
-        // Look for collisions with itself
-        int snakelength = mSnakeTrail.size();
-        for (int snakeindex = 0; snakeindex < snakelength; snakeindex++) {
-            Coordinate c = mSnakeTrail.get(snakeindex);
-            if (c.equals(newHead)) {
-                setMode(LOSE);
-                return;
-            }
-        }
-
-        // Look for apples
-        int applecount = mAppleList.size();
-        for (int appleindex = 0; appleindex < applecount; appleindex++) {
-            Coordinate c = mAppleList.get(appleindex);
-            if (c.equals(newHead)) {
-                mAppleList.remove(c);
-                addRandomApple();
-                
-                mScore++;
-                mMoveDelay *= 0.9;
-
-                growSnake = true;
-            }
-        }
-
-        // push a new head onto the ArrayList and pull off the tail
-        mSnakeTrail.add(0, newHead);
-        // except if we want the snake to grow
-        if (!growSnake) {
-            mSnakeTrail.remove(mSnakeTrail.size() - 1);
-        }
-
-        int index = 0;
-        for (Coordinate c : mSnakeTrail) {
-            if (index == 0) {
-                setTile(YELLOW_STAR, c.x, c.y);
-            } else {
-                setTile(RED_STAR, c.x, c.y);
-            }
-            index++;
-        }
-
-    }
-
-    /**
+     /**
      * Simple class containing two integer values and a comparison function.
      * There's probably something I should use instead, but this was quick and
      * easy to build.
