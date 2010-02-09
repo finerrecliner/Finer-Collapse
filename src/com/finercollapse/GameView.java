@@ -317,16 +317,16 @@ public class GameView extends TileView {
 
         Resources res = getContext().getResources();
         CharSequence str = "";
-//        if (newMode == PAUSE) {
-//            str = res.getText(R.string.mode_pause);
-//        }
-//        if (newMode == READY) {
-//            str = res.getText(R.string.mode_ready);
-//        }
-//        if (newMode == LOSE) {
-//            str = res.getString(R.string.mode_lose_prefix) + mScore
-//                  + res.getString(R.string.mode_lose_suffix);
-//        }
+        if (newMode == PAUSE) {
+            str = res.getText(R.string.mode_pause);
+        }
+        if (newMode == READY) {
+            str = res.getText(R.string.mode_ready);
+        }
+        if (newMode == LOSE) {
+            str = res.getString(R.string.mode_lose_prefix) + mScore
+                  + res.getString(R.string.mode_lose_suffix);
+        }
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
