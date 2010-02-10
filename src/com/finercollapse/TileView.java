@@ -118,6 +118,9 @@ public class TileView extends View {
         mTileGrid[x][y] = tileindex;
     }
 
+    public int getTile(int x, int y) {
+    	return mTileGrid[x][y];
+    }
 
     @Override
     public void onDraw(Canvas canvas) {

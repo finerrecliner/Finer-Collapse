@@ -120,6 +120,7 @@ public class GameView extends TileView {
     	board.clear();
 
     	//TODO for each tile on board, insert a random color
+    	setRandomBoard();
 
         frameRate = 600;
         score = 0;
@@ -212,7 +213,7 @@ public class GameView extends TileView {
                  */
                 initNewGame();
                 setMode(RUNNING);
-                update();
+                //update();
                 return (true);
             }
 
@@ -227,6 +228,11 @@ public class GameView extends TileView {
             }
 
             return (true);
+        }
+        
+        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+        	shiftUp();
+        	createRow();
         }
 
         return super.onKeyDown(keyCode, msg);
@@ -283,10 +289,7 @@ public class GameView extends TileView {
     public void update() {
         if (mMode == RUNNING) {
             long now = System.currentTimeMillis();
-
-            clearTiles();
-            updateBoard();
-            
+          
             mRedrawHandler.sleep(frameRate);
         }
 
@@ -294,15 +297,33 @@ public class GameView extends TileView {
 
     /**
      * Draws some walls.
-     * TODO: should create a new row
+     * TODO: documentation
      */
-    private void updateBoard() {
+    private void setRandomBoard() {
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
         		int color = (RNG.nextInt(3)) + 1;
         		setTile(color, x, y);
         	}
         }
+    }
+    
+    //TODO documentation
+    private void shiftUp() {
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = 0; y < mYTileCount - 1; y++) {
+    			int tileBelow = getTile(x, y+1);
+    			setTile(tileBelow, x, y);
+    		}
+    	}
+    }
+    
+    //TODO documentation    
+    private void createRow() {
+    	for (int x = 0; x < mXTileCount; x++) {
+    		int color = (RNG.nextInt(3) + 1);
+    		setTile(color, x, mYTileCount - 1);
+    	}
     }
 
      /**
