@@ -254,7 +254,12 @@ public class GameView extends TileView {
 
         return super.onKeyDown(keyCode, msg);
     }
-
+ 
+    @Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+    	return true;
+    }
+    
     /**
      * Sets the TextView that will be used to give information (such as "Game
      * Over" to the user.

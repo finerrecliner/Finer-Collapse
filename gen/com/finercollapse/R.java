@@ -41,22 +41,22 @@ containing a value of this type.
         public static final int snake_layout_text_text=0x7f040006;
     }
     public static final class styleable {
-        /** Attributes that can be used with a GameView.
+        /** Attributes that can be used with a TileView.
            <p>Includes the following attributes:</p>
            <table>
            <colgroup align="left" />
            <colgroup align="left" />
            <tr><th>Attribute</th><th>Description</th></tr>
-           <tr><td><code>{@link #GameView_tileSize com.finercollapse:tileSize}</code></td><td></td></tr>
+           <tr><td><code>{@link #TileView_tileSize com.finercollapse:tileSize}</code></td><td></td></tr>
            </table>
-           @see #GameView_tileSize
+           @see #TileView_tileSize
          */
-        public static final int[] GameView = {
+        public static final int[] TileView = {
             0x7f010000
         };
         /**
           <p>This symbol is the offset where the {@link com.finercollapse.R.attr#tileSize}
-          attribute's value can be found in the {@link #GameView} array.
+          attribute's value can be found in the {@link #TileView} array.
 
 
           <p>Must be an integer value, such as "<code>100</code>".
@@ -67,6 +67,6 @@ theme attribute (in the form
 containing a value of this type.
           @attr name android:tileSize
         */
-        public static final int GameView_tileSize = 0;
+        public static final int TileView_tileSize = 0;
     };
 }

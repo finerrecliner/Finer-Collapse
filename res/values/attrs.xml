@@ -15,7 +15,7 @@
 -->
 
 <resources>
-  <declare-styleable name="GameView">
+  <declare-styleable name="TileView">
     <attr name="tileSize" format="integer" />
   </declare-styleable>
 </resources>

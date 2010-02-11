@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 
@@ -49,9 +50,9 @@ public class TileView extends View {
     /* constructor */
     public TileView(Context context, AttributeSet attrs) {
     	super (context, attrs);
-    	
-    	TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.GameView);
-        mTileSize = a.getInt(R.styleable.GameView_tileSize, 12);
+    	    	
+    	TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TileView);
+        mTileSize = a.getInteger(R.styleable.TileView_tileSize, 36); //TODO doesnt work
         a.recycle();
     }
  
@@ -140,5 +141,15 @@ public class TileView extends View {
         }
 
     }
+    
+
+	public boolean onTouch(View v, MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+        
+        
+        
+		return true;
+	}
 
 }
