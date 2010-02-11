@@ -8,13 +8,14 @@
 		android:layout_height="fill_parent">
 		<TextView  
 		    android:layout_width="fill_parent" 
-		    android:layout_height="wrap_content" android:text="Score = 0"/>
+		    android:layout_height="wrap_content" 
+		    android:text="Score = 0"/>
 		
 		<com.finercollapse.GameView
 			android:id="@+id/board"
 			android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
-		    tileSize="24"/>
+		    tileSize="36"/>
 	</RelativeLayout>
 	
 	<RelativeLayout

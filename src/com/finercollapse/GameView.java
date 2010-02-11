@@ -37,6 +37,7 @@ public class GameView extends TileView {
     /**
      * Labels for the drawables that will be loaded into the TileView class
      */
+    private static final int BLANK = 0;
     private static final int RED_STAR = 1;
     private static final int YELLOW_STAR = 2;
     private static final int GREEN_STAR = 3;
@@ -100,10 +101,10 @@ public class GameView extends TileView {
      */
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initSnakeView();
+        initGameView();
    }
 
-    private void initSnakeView() {
+    private void initGameView() {
         setFocusable(true);
 
         Resources r = this.getContext().getResources();
@@ -119,9 +120,11 @@ public class GameView extends TileView {
     private void initNewGame() {
     	board.clear();
 
-    	//TODO for each tile on board, insert a random color
-    	setRandomBoard();
-
+    	for (int i = 0; i < 2; i++){
+    		newRow();
+    	}
+    	
+    	
         frameRate = 600;
         score = 0;
     }
@@ -203,7 +206,6 @@ public class GameView extends TileView {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
-    	//TODO should be on user clicks
 
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             if (mMode == READY | mMode == LOSE) {
@@ -226,13 +228,28 @@ public class GameView extends TileView {
                 update();
                 return (true);
             }
+            
+            if (mMode == RUNNING) {
+            	setRandomBoard();
+            	return (true);
+            }
 
             return (true);
         }
-        
+
+        //TODO should be on user clicks
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-        	shiftUp();
-        	createRow();
+        	
+        	//check if any tiles are filled in top row
+        	if (checkRow(0)) {        	//TODO magic number
+        		setMode(LOSE);
+        		return true;
+        	}
+        	//TODO check if any tiles are filled in 2nd row --> warning
+        	if (checkRow(1)) {        	//TODO magic number
+        		Log.i(TAG, "user warning: about to lose!");
+        	}
+        	newRow();
         }
 
         return super.onKeyDown(keyCode, msg);
@@ -275,6 +292,7 @@ public class GameView extends TileView {
         if (newMode == LOSE) {
             str = res.getString(R.string.mode_lose_prefix) + score
                   + res.getString(R.string.mode_lose_suffix);
+            clearTiles();
         }
 
         mStatusText.setText(str);
@@ -308,24 +326,34 @@ public class GameView extends TileView {
         }
     }
     
-    //TODO documentation
-    private void shiftUp() {
+    //TODO documentation    
+    private void newRow() {
+    	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
     			int tileBelow = getTile(x, y+1);
     			setTile(tileBelow, x, y);
     		}
     	}
-    }
-    
-    //TODO documentation    
-    private void createRow() {
+    	
+    	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
     		int color = (RNG.nextInt(3) + 1);
     		setTile(color, x, mYTileCount - 1);
     	}
     }
 
+    //TODO documentation
+    private boolean checkRow(int row) {
+    	for (int x = 0; x < mXTileCount; x++){
+    		if (getTile(x, row) != BLANK) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
      /**
      * Simple class containing two integer values and a comparison function.
      * There's probably something I should use instead, but this was quick and

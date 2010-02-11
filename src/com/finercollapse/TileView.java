@@ -1,6 +1,7 @@
 package com.finercollapse;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -49,7 +50,9 @@ public class TileView extends View {
     public TileView(Context context, AttributeSet attrs) {
     	super (context, attrs);
     	
-    	mTileSize = 24;  //TODO pull from layout file?
+    	TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.GameView);
+        mTileSize = a.getInt(R.styleable.GameView_tileSize, 12);
+        a.recycle();
     }
  
     
