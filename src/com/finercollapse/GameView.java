@@ -346,12 +346,18 @@ public class GameView extends TileView {
     	//TODO drop tiles that have a BLANK below them
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
-    			int below = y + 1;
-    			int tileBelow = getTile(x, below);
-    			
-    			while (tileBelow == BLANK && 
-    				   below <= mYTileCount) {
-    				tileBelow = getTile(x, below++);
+    			/* if current tile is colored, but the one below is BLANK */
+    			if (y != mYTileCount-1 &&
+    				getTile(x, y) != BLANK &&
+    				getTile(x, y+1) == BLANK) {
+	    				int yBelow = y + 1;
+	    				int tileBelow = getTile(x, yBelow);
+	        			
+	        			while (tileBelow == BLANK && 
+	        				   yBelow < mYTileCount) {
+	        				tileBelow = getTile(x, yBelow++);
+	        			}
+	        			setTile(tileBelow, x, y);	
     			}
     		}
     	}
@@ -374,7 +380,7 @@ public class GameView extends TileView {
 	        		(y / mTileSize) - 1);
 	        
         	//TODO consolidate tiles
-        	//consolidateTiles();    
+        	consolidateTiles();    
         	
         	//check if any tiles are filled in top row
         	if (checkRow(0)) {        	//TODO magic number
