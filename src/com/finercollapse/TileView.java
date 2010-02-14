@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,7 +18,9 @@ import android.view.View;
  * 
  */
 public class TileView extends View {
-
+	
+    private static final String TAG = "TileView";
+	
     /**
      * Parameters controlling the size of the tiles and their range within view.
      * Width/Height are in pixels, and Drawables will be scaled to fit to these
@@ -29,8 +32,8 @@ public class TileView extends View {
     protected static int mXTileCount;
     protected static int mYTileCount;
 
-    private static int mXOffset;
-    private static int mYOffset;
+    protected static int mXOffset;
+    protected static int mYOffset;
 
 
     /**
@@ -122,6 +125,7 @@ public class TileView extends View {
         mTileGrid[x][y] = tileindex;
     }
 
+    //TODO documentation
     public int getTile(int x, int y) {
     	return mTileGrid[x][y];
     }
@@ -140,16 +144,12 @@ public class TileView extends View {
             }
         }
 
-    }
+    }   
     
-
-	public boolean onTouch(View v, MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-        
-        
-        
-		return true;
+    //TODO documentation
+    @Override
+	public boolean onTouchEvent(MotionEvent event) {        
+		return super.onTouchEvent(event);
 	}
 
 }

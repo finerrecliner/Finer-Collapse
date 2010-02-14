@@ -11,6 +11,7 @@ import android.util.AttributeSet;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -48,13 +49,7 @@ public class GameView extends TileView {
      * captured.
      */
     private long score = 0;
-    private long frameRate = 600;
-    
-    /**
-     * mLastMove: tracks the absolute time when the snake last moved, and is used
-     * to determine if a move should be made based on mMoveDelay.
-     */
-    private long mLastMove;
+    private long frameRate = 0;
     
     /**
      * mStatusText: text shows to the user in some run states
@@ -215,7 +210,7 @@ public class GameView extends TileView {
                  */
                 initNewGame();
                 setMode(RUNNING);
-                //update();
+                update();
                 return (true);
             }
 
@@ -229,27 +224,15 @@ public class GameView extends TileView {
                 return (true);
             }
             
-            if (mMode == RUNNING) {
-            	setRandomBoard();
-            	return (true);
-            }
-
             return (true);
         }
 
         //TODO should be on user clicks
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-        	
-        	//check if any tiles are filled in top row
-        	if (checkRow(0)) {        	//TODO magic number
-        		setMode(LOSE);
-        		return true;
-        	}
-        	//TODO check if any tiles are filled in 2nd row --> warning
-        	if (checkRow(1)) {        	//TODO magic number
-        		Log.i(TAG, "user warning: about to lose!");
-        	}
-        	newRow();
+            if (mMode == RUNNING) {
+            	setRandomBoard();
+            	return (true);
+            }
         }
 
         return super.onKeyDown(keyCode, msg);
@@ -311,7 +294,7 @@ public class GameView extends TileView {
      */
     public void update() {
         if (mMode == RUNNING) {
-            long now = System.currentTimeMillis();
+            //long now = System.currentTimeMillis();
           
             mRedrawHandler.sleep(frameRate);
         }
@@ -358,6 +341,59 @@ public class GameView extends TileView {
     	
     	return false;
     }
+    
+    private void consolidateTiles() {
+    	//TODO drop tiles that have a BLANK below them
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = 0; y < mYTileCount; y++) {
+    			int below = y + 1;
+    			int tileBelow = getTile(x, below);
+    			
+    			while (tileBelow == BLANK && 
+    				   below <= mYTileCount) {
+    				tileBelow = getTile(x, below++);
+    			}
+    		}
+    	}
+    	
+    	//TODO shift tiles to the right that have a BLANK to the right of them
+    	
+    }
+    
+    
+    //TODO documentation
+    @Override
+	public boolean onTouchEvent(MotionEvent event) {
+        int x = (int) event.getX() + mXOffset;
+        int y = (int) event.getY() + mYOffset;
+        
+        if (mMode == RUNNING) {
+        	//any tile clicked on will be set to BLANK
+	        setTile(BLANK, 
+	        		(x / mTileSize) - 1, 
+	        		(y / mTileSize) - 1);
+	        
+        	//TODO consolidate tiles
+        	//consolidateTiles();    
+        	
+        	//check if any tiles are filled in top row
+        	if (checkRow(0)) {        	//TODO magic number
+        		setMode(LOSE);
+        		return true;
+        	}
+        	//TODO check if any tiles are filled in 2nd row --> warning
+        	if (checkRow(1)) {        	//TODO magic number
+        		Log.i(TAG, "user warning: about to lose!");
+        	}
+        	
+        	//push up a new row of tiles
+        	newRow();
+	    }
+        
+		return super.onTouchEvent(event);
+	}
+    
+    
     
      /**
      * Simple class containing two integer values and a comparison function.

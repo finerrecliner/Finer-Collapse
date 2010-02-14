@@ -17,7 +17,7 @@
 			android:id="@+id/board"
 			android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
-		    app:tileSize="36"/>
+		    app:tileSize="12"/>
 	</RelativeLayout>
 	
 	<RelativeLayout
