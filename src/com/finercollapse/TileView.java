@@ -43,7 +43,7 @@ public class TileView extends View {
      * A two-dimensional array of integers in which the number represents the
      * index of the tile that should be drawn at that locations
      */
-    private Tile[][] mTileGrid;
+    protected Tile[][] mTileGrid;
 
     private final Paint mPaint = new Paint();
     
@@ -80,7 +80,7 @@ public class TileView extends View {
         mTileGrid = new Tile[mXTileCount][mYTileCount];
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
-        		mTileGrid[x][y] = new Tile(0, x, y);
+        		mTileGrid[x][y] = new Tile(0, x, y); //TODO: can use constructor for just x,y
         	}
         }
     }
@@ -113,23 +113,6 @@ public class TileView extends View {
         }
     }
 
-    /**
-     * Used to indicate that a particular tile (set with loadTile and referenced
-     * by an integer) should be drawn at the given x/y coordinates during the
-     * next invalidate/draw cycle.
-     * 
-     * @param tileindex
-     * @param x
-     * @param y
-     */
-    public void setTile(int color, int x, int y) {
-        mTileGrid[x][y].setColor(color);
-    }
-
-    //TODO documentation
-    public int getTile(int x, int y) {
-    	return mTileGrid[x][y].getColor();
-    }
 
     @Override
     public void onDraw(Canvas canvas) {

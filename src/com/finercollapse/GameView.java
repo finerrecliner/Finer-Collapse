@@ -321,7 +321,7 @@ public class GameView extends TileView {
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
         		int color = (RNG.nextInt(3)) + 1;
-        		setTile(color, x, y);
+        		mTileGrid[x][y].setColor(color);
         	}
         }
     }
@@ -331,20 +331,20 @@ public class GameView extends TileView {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
-    			int tileBelow = getTile(x, y+1);
-    			setTile(tileBelow, x, y);
+    			Tile tileBelow = mTileGrid[x][y+1];
+    			mTileGrid[x][y].setColor(tileBelow.getColor());
     		}
     	}
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
     		int color = (RNG.nextInt(3) + 1);
-    		setTile(color, x, mYTileCount - 1);
+    		mTileGrid[x][mYTileCount -1].setColor(color);
     	}
     }
     
     private boolean tileIsBlank(int x, int y) {
-    	return (getTile(x, y) == BLANK);
+    	return (mTileGrid[x][y].getColor() == BLANK);
     }
 
     //TODO documentation
@@ -378,9 +378,9 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				int current = getTile(x ,y);
-    				setTile(current, x, y+1);
-    				setTile(BLANK, x, y);
+    				Tile currentTile = mTileGrid[x][y];
+    				mTileGrid[x][y+1].setColor(currentTile.getColor());
+    				mTileGrid[x][y].setColor(BLANK);
     			}
     		}
     	}
@@ -399,8 +399,10 @@ public class GameView extends TileView {
         if (mMode == RUNNING) {
         	breadthFirstSearch(new Coordinate(x,y));
         	
+        	//TODO check that the tile clicked was not blank!
+        	
         	//any tile clicked on will be set to BLANK
-	        setTile(BLANK, x, y); //TODO remove/move
+			mTileGrid[x][y].setColor(BLANK); //TODO remove/move
 	        
         	//TODO consolidate tiles
         	consolidateTiles();    
