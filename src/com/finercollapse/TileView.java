@@ -32,7 +32,7 @@ public class TileView extends View {
     protected static int mXOffset;
     protected static int mYOffset;
 
-
+    
     /**
      * A hash that maps integer handles specified by the subclasser to the
      * drawable that will be used for that reference
@@ -118,8 +118,8 @@ public class TileView extends View {
      * @param x
      * @param y
      */
-    public void setTile(int tileindex, int x, int y) {
-        mTileGrid[x][y] = tileindex;
+    public void setTile(int color, int x, int y) {
+        mTileGrid[x][y] = color;
     }
 
     //TODO documentation
@@ -148,5 +148,43 @@ public class TileView extends View {
 	public boolean onTouchEvent(MotionEvent event) {        
 		return super.onTouchEvent(event);
 	}
+    
+
+
+        
+    
+    private static class Tile {
+        private int x;
+        private int y;
+    	
+    	public int color;
+        public int distance;
+        public Tile pred; //predecessor 
+      
+        public enum BFS_status {
+	      	UNDISCOVERED,
+	      	DISCOVERED,
+	      	HANDLED,
+        }
+
+        /* constructor */
+        public Tile(int newColor, int newX, int newY) {
+            color = newColor;
+            x = newX;
+            y = newY;
+        }
+        
+//        public boolean equals(Tile other) {
+//            if (x == other.x && y == other.y) {
+//                return true;
+//            }
+//            return false;
+//        }
+
+        @Override
+        public String toString() {
+            return "Tile: [" + color + "," + x + "," + y + "]";
+        }
+    }
 
 }

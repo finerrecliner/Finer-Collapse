@@ -49,7 +49,7 @@ public class GameView extends TileView {
      * captured.
      */
     private long score = 0;
-    private long frameRate = 0;
+    private long frameRate = 10;
     
     /**
      * mStatusText: text shows to the user in some run states
@@ -301,6 +301,18 @@ public class GameView extends TileView {
 
     }
 
+    //TODO breadth-first-search algorithm
+    private void breadthFirstSearch(Coordinate c) {
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = 0; y < mYTileCount; y++) {
+    			
+    		}
+    	}
+    	
+    }
+    
+    
+    
     /**
      * Draws some walls.
      * TODO: documentation
@@ -330,11 +342,16 @@ public class GameView extends TileView {
     		setTile(color, x, mYTileCount - 1);
     	}
     }
+    
+    private boolean tileIsBlank(int x, int y) {
+    	return (getTile(x, y) == BLANK);
+    }
 
     //TODO documentation
-    private boolean checkRow(int row) {
+    //return true if there is a filled tile in given row
+    private boolean rowHasTile(int row) {
     	for (int x = 0; x < mXTileCount; x++){
-    		if (getTile(x, row) != BLANK) {
+    		if (!tileIsBlank(x, row)) {
     			return true;
     		}
     	}
@@ -342,27 +359,33 @@ public class GameView extends TileView {
     	return false;
     }
     
+    private boolean emptyBelowHere(int col, int y) {
+    	//no need to examine the first tile, it should be filled.
+    	for (y++; y < mYTileCount; y++) {
+    		if  (tileIsBlank(col, y)) {
+    			return true;
+    		}
+    	}
+    	    	
+    	return false;
+    }
+    
+    
     private void consolidateTiles() {
-    	//TODO drop tiles that have a BLANK below them
+    	// drop tiles that have a BLANK below them
+    	// loop through rows from bottom to top
+    	// Do not bother testing the last row
     	for (int x = 0; x < mXTileCount; x++) {
-    		for (int y = 0; y < mYTileCount; y++) {
-    			/* if current tile is colored, but the one below is BLANK */
-    			if (y != mYTileCount-1 &&
-    				getTile(x, y) != BLANK &&
-    				getTile(x, y+1) == BLANK) {
-	    				int yBelow = y + 1;
-	    				int tileBelow = getTile(x, yBelow);
-	        			
-	        			while (tileBelow == BLANK && 
-	        				   yBelow < mYTileCount) {
-	        				tileBelow = getTile(x, yBelow++);
-	        			}
-	        			setTile(tileBelow, x, y);	
+    		for (int y = mYTileCount-2; y >= 0; y--) {
+    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
+    				int current = getTile(x ,y);
+    				setTile(current, x, y+1);
+    				setTile(BLANK, x, y);
     			}
     		}
     	}
     	
-    	//TODO shift tiles to the right that have a BLANK to the right of them
+    	//TODO shift columns to the right that have a BLANK column to the right of them
     	
     }
     
@@ -370,25 +393,25 @@ public class GameView extends TileView {
     //TODO documentation
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
-        int x = (int) event.getX() + mXOffset;
-        int y = (int) event.getY() + mYOffset;
+        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
+        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
         
         if (mMode == RUNNING) {
+        	breadthFirstSearch(new Coordinate(x,y));
+        	
         	//any tile clicked on will be set to BLANK
-	        setTile(BLANK, 
-	        		(x / mTileSize) - 1, 
-	        		(y / mTileSize) - 1);
+	        setTile(BLANK, x, y); //TODO remove/move
 	        
         	//TODO consolidate tiles
         	consolidateTiles();    
         	
         	//check if any tiles are filled in top row
-        	if (checkRow(0)) {        	//TODO magic number
+        	if (rowHasTile(0)) {        	//TODO magic number
         		setMode(LOSE);
         		return true;
         	}
         	//TODO check if any tiles are filled in 2nd row --> warning
-        	if (checkRow(1)) {        	//TODO magic number
+        	if (rowHasTile(1)) {        	//TODO magic number
         		Log.i(TAG, "user warning: about to lose!");
         	}
         	
@@ -410,6 +433,7 @@ public class GameView extends TileView {
     private class Coordinate {
         public int x;
         public int y;
+
 
         public Coordinate(int newX, int newY) {
             x = newX;
