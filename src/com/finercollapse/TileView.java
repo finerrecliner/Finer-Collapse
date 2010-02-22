@@ -43,7 +43,7 @@ public class TileView extends View {
      * A two-dimensional array of integers in which the number represents the
      * index of the tile that should be drawn at that locations
      */
-    private int[][] mTileGrid;
+    private Tile[][] mTileGrid;
 
     private final Paint mPaint = new Paint();
     
@@ -77,8 +77,12 @@ public class TileView extends View {
         mXOffset = ((w - (mTileSize * mXTileCount)) / 2);
         mYOffset = ((h - (mTileSize * mYTileCount)) / 2);
 
-        mTileGrid = new int[mXTileCount][mYTileCount];
-        clearTiles();
+        mTileGrid = new Tile[mXTileCount][mYTileCount];
+        for (int x = 0; x < mXTileCount; x++) {
+        	for (int y = 0; y < mYTileCount; y++) {
+        		mTileGrid[x][y] = new Tile(0, x, y);
+        	}
+        }
     }
 
     /**
@@ -104,7 +108,7 @@ public class TileView extends View {
     public void clearTiles() {
         for (int x = 0; x < mXTileCount; x++) {
             for (int y = 0; y < mYTileCount; y++) {
-                setTile(0, x, y);
+            	mTileGrid[x][y].setColor(0);
             }
         }
     }
@@ -119,12 +123,12 @@ public class TileView extends View {
      * @param y
      */
     public void setTile(int color, int x, int y) {
-        mTileGrid[x][y] = color;
+        mTileGrid[x][y].setColor(color);
     }
 
     //TODO documentation
     public int getTile(int x, int y) {
-    	return mTileGrid[x][y];
+    	return mTileGrid[x][y].getColor();
     }
 
     @Override
@@ -132,8 +136,8 @@ public class TileView extends View {
         super.onDraw(canvas);
         for (int x = 0; x < mXTileCount; x += 1) {
             for (int y = 0; y < mYTileCount; y += 1) {
-                if (mTileGrid[x][y] > 0) {
-                    canvas.drawBitmap(mTileArray[mTileGrid[x][y]], 
+                if (mTileGrid[x][y].getColor() > 0) {
+                    canvas.drawBitmap(mTileArray[mTileGrid[x][y].getColor()], 
                     		mXOffset + x * mTileSize,
                     		mYOffset + y * mTileSize,
                     		mPaint);
@@ -148,43 +152,6 @@ public class TileView extends View {
 	public boolean onTouchEvent(MotionEvent event) {        
 		return super.onTouchEvent(event);
 	}
-    
 
-
-        
-    
-    private static class Tile {
-        private int x;
-        private int y;
-    	
-    	public int color;
-        public int distance;
-        public Tile pred; //predecessor 
-      
-        public enum BFS_status {
-	      	UNDISCOVERED,
-	      	DISCOVERED,
-	      	HANDLED,
-        }
-
-        /* constructor */
-        public Tile(int newColor, int newX, int newY) {
-            color = newColor;
-            x = newX;
-            y = newY;
-        }
-        
-//        public boolean equals(Tile other) {
-//            if (x == other.x && y == other.y) {
-//                return true;
-//            }
-//            return false;
-//        }
-
-        @Override
-        public String toString() {
-            return "Tile: [" + color + "," + x + "," + y + "]";
-        }
-    }
 
 }
