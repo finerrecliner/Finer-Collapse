@@ -57,6 +57,7 @@ public class TileView extends View {
     }
  
     
+    
     /**
      * Rests the internal array of Bitmaps used for drawing tiles, and
      * sets the maximum index of tiles to be inserted
@@ -66,6 +67,10 @@ public class TileView extends View {
     
     public void resetTiles(int tilecount) {
     	mTileArray = new Bitmap[tilecount];
+    }
+    
+    public Tile getTile(int x, int y) {
+    	return mTileGrid[x][y];
     }
 
 
@@ -112,7 +117,45 @@ public class TileView extends View {
             }
         }
     }
+    
+    public Tile getAbove(Tile t) {
+    	try {
+    		return getTile(t.getX(), t.getY() + 1);
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		return null;
+    	}
+    }
+    
+    public Tile getBelow(Tile t) {
+    	try {
+    		return getTile(t.getX(), t.getY() - 1);
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		return null;
+    	}
+    }
+    
+    public Tile getRight(Tile t) {
+    	try {
+    		return getTile(t.getX() + 1, t.getY());
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		return null;
+    	}
+    }
 
+    public Tile getLeft(Tile t) {
+    	try {
+    		return getTile(t.getX() - 1, t.getY());
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		return null;
+    	}
+    }
+
+    
+    
 
     @Override
     public void onDraw(Canvas canvas) {

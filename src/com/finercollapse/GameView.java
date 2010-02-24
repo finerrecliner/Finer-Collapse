@@ -1,7 +1,8 @@
 package com.finercollapse;
 
-import java.util.ArrayList;
-import java.util.Random;
+//import java.util.ArrayList;
+//import java.util.Random;
+import java.util.*;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -302,13 +303,50 @@ public class GameView extends TileView {
     }
 
     //TODO breadth-first-search algorithm
-    private void breadthFirstSearch(Coordinate c) {
+    private void breadthFirstSearch(int sourceX, int sourceY) {
+    	Queue<Tile> queue = new LinkedList<Tile>();
+    	Tile source = getTile(sourceX, sourceY);
+    	Tile[] adj = new Tile[4];
+    	
+    	/* initialize */
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
-    			
+    	//		if (x != sourceX && y != sourceY) {
+    				Tile current = getTile(x, y);
+    				
+    				current.setStatus(Tile.BFS.UNDISCOVERED);
+    				current.setDistance(-1);
+    				current.setPred(null);
+    	//		}
     		}
     	}
+    	source.setStatus(Tile.BFS.DISCOVERED);
+    	source.setDistance(0);
     	
+    	queue.add(source);
+    	
+    	while (!queue.isEmpty()) {
+    		Tile current = queue.poll(); //return head and remove from queue
+    		
+    		adj[0] = getAbove(current);
+    		adj[1] = getBelow(current);
+    		adj[2] = getRight(current);
+    		adj[3] = getLeft (current);
+    		
+    		//for each adjacent Tile
+    		for (Tile a : adj) {
+    			if (a != null && 
+    				a.getStatus() == Tile.BFS.UNDISCOVERED &&
+    				a.getColor() == current.getColor()) {
+	    				a.setStatus(Tile.BFS.DISCOVERED);
+	    				a.setDistance(current.getDistance() + 1);
+	    				a.setPred(current);
+	    				queue.add(a);
+    			}
+    		}
+    		current.setColor(BLANK);
+    		current.setStatus(Tile.BFS.HANDLED);    		
+    	}
     }
     
     
@@ -321,7 +359,7 @@ public class GameView extends TileView {
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
         		int color = (RNG.nextInt(3)) + 1;
-        		mTileGrid[x][y].setColor(color);
+        		getTile(x, y).setColor(color);
         	}
         }
     }
@@ -331,20 +369,20 @@ public class GameView extends TileView {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
-    			Tile tileBelow = mTileGrid[x][y+1];
-    			mTileGrid[x][y].setColor(tileBelow.getColor());
+    			Tile tileBelow = getTile(x, y+1);
+    			getTile(x, y).setColor(tileBelow.getColor());
     		}
     	}
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
     		int color = (RNG.nextInt(3) + 1);
-    		mTileGrid[x][mYTileCount -1].setColor(color);
+    		getTile(x, mYTileCount - 1).setColor(color);
     	}
     }
     
     private boolean tileIsBlank(int x, int y) {
-    	return (mTileGrid[x][y].getColor() == BLANK);
+    	return (getTile(x, y).getColor() == BLANK);
     }
 
     //TODO documentation
@@ -378,9 +416,9 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				Tile currentTile = mTileGrid[x][y];
-    				mTileGrid[x][y+1].setColor(currentTile.getColor());
-    				mTileGrid[x][y].setColor(BLANK);
+    				Tile currentTile = getTile(x, y);
+    				getTile(x, y+1).setColor(currentTile.getColor());
+    				getTile(x, y).setColor(BLANK);
     			}
     		}
     	}
@@ -397,15 +435,15 @@ public class GameView extends TileView {
         int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
         
         if (mMode == RUNNING) {
-        	breadthFirstSearch(new Coordinate(x,y));
+        	breadthFirstSearch(x, y);
         	
         	//TODO check that the tile clicked was not blank!
         	
-        	//any tile clicked on will be set to BLANK
-			mTileGrid[x][y].setColor(BLANK); //TODO remove/move
+        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
+        	breadthFirstSearch(x, y);
 	        
         	//TODO consolidate tiles
-        	consolidateTiles();    
+        	//consolidateTiles();    
         	
         	//check if any tiles are filled in top row
         	if (rowHasTile(0)) {        	//TODO magic number
@@ -421,7 +459,7 @@ public class GameView extends TileView {
         	newRow();
 	    }
         
-		return super.onTouchEvent(event);
+		return super.onTouchEvent(event); //TODO: can probably be just "true"
 	}
     
     
