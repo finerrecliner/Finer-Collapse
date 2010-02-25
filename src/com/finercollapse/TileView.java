@@ -164,8 +164,8 @@ public class TileView extends View {
             for (int y = 0; y < mYTileCount; y += 1) {
                 if (mTileGrid[x][y].getColor() > 0) {
                     canvas.drawBitmap(mTileArray[mTileGrid[x][y].getColor()], 
-                    		mXOffset + x * mTileSize,
-                    		mYOffset + y * mTileSize,
+                    		mTileGrid[x][y].getXOffset() + mXOffset + (x * mTileSize),
+                    		mTileGrid[x][y].getYOffset() + mYOffset + (y * mTileSize),
                     		mPaint);
                 }
             }

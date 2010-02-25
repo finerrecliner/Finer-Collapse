@@ -302,7 +302,7 @@ public class GameView extends TileView {
 
     }
 
-    //TODO breadth-first-search algorithm
+    //breadth-first-search algorithm
     private void breadthFirstSearch(int sourceX, int sourceY) {
     	Queue<Tile> queue = new LinkedList<Tile>();
     	Tile source = getTile(sourceX, sourceY);
@@ -311,13 +311,11 @@ public class GameView extends TileView {
     	/* initialize */
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
-    	//		if (x != sourceX && y != sourceY) {
     				Tile current = getTile(x, y);
     				
     				current.setStatus(Tile.BFS.UNDISCOVERED);
     				current.setDistance(-1);
     				current.setPred(null);
-    	//		}
     		}
     	}
     	source.setStatus(Tile.BFS.DISCOVERED);
@@ -409,10 +407,10 @@ public class GameView extends TileView {
     }
     
     
-    private void consolidateTiles() {
+    private void consolidateTilesStatic() {
     	// drop tiles that have a BLANK below them
     	// loop through rows from bottom to top
-    	// Do not bother testing the last row
+    	// Do not bother looking at the last row
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
@@ -425,6 +423,25 @@ public class GameView extends TileView {
     	
     	//TODO shift columns to the right that have a BLANK column to the right of them
     	
+    }
+    
+    
+    private void consolidateTiles() {
+    	// drop tiles that have a BLANK below them
+    	// loop through rows from bottom to top
+    	// Do not bother looking at the last row
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = mYTileCount-2; y >= 0; y--) {
+    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
+    				Tile currentTile = getTile(x, y);
+    				while (!currentTile.animateDown(mTileSize)) {
+    					update();
+    				}
+    				getTile(x, y+1).setColor(currentTile.getColor());
+    				getTile(x, y).setColor(BLANK);
+    			}
+    		}
+    	}
     }
     
     
@@ -443,7 +460,7 @@ public class GameView extends TileView {
         	breadthFirstSearch(x, y);
 	        
         	//TODO consolidate tiles
-        	//consolidateTiles();    
+        	consolidateTiles();    
         	
         	//check if any tiles are filled in top row
         	if (rowHasTile(0)) {        	//TODO magic number
