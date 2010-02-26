@@ -1,7 +1,5 @@
 package com.finercollapse;
 
-//import java.util.ArrayList;
-//import java.util.Random;
 import java.util.*;
 
 import android.content.Context;
@@ -14,6 +12,9 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.TextView;
 
 /**
@@ -21,7 +22,7 @@ import android.widget.TextView;
  * 
  * 
  */
-public class GameView extends TileView {
+public class GameView extends TileView implements AnimationListener {
 
     private static final String TAG = "GameView";
 
@@ -66,6 +67,9 @@ public class GameView extends TileView {
      * Everyone needs a little randomness in their life
      */
     private static final Random RNG = new Random();
+    
+    /* animation */
+    private Animation mSlideDown;
 
     /**
      * Create a simple handler that we can use to cause animation to happen.  We
@@ -104,6 +108,8 @@ public class GameView extends TileView {
         setFocusable(true);
 
         Resources r = this.getContext().getResources();
+        
+        mSlideDown = AnimationUtils.loadAnimation(this.getContext(), R.anim.slide_down);
         
         resetTiles(4); //TODO what does this do?
         loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
@@ -232,6 +238,13 @@ public class GameView extends TileView {
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             if (mMode == RUNNING) {
             	setRandomBoard();
+            	return (true);
+            }
+        }
+        
+        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            if (mMode == RUNNING) {
+            	this.startAnimation(mSlideDown);
             	return (true);
             }
         }
@@ -434,9 +447,7 @@ public class GameView extends TileView {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
     				Tile currentTile = getTile(x, y);
-    				while (!currentTile.animateDown(mTileSize)) {
-    					update();
-    				}
+    				
     				getTile(x, y+1).setColor(currentTile.getColor());
     				getTile(x, y).setColor(BLANK);
     			}
@@ -509,5 +520,24 @@ public class GameView extends TileView {
             return "Coordinate: [" + x + "," + y + "]";
         }
     }
+
+
+	@Override
+	public void onAnimationEnd(Animation animation) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onAnimationRepeat(Animation animation) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onAnimationStart(Animation animation) {
+		// TODO Auto-generated method stub
+		
+	}
     
 }
