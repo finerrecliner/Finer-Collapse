@@ -16,6 +16,7 @@ public class FinerCollapse extends Activity {
         
         gameView = (GameView) findViewById(R.id.board);
         gameView.setTextView((TextView) findViewById(R.id.text));
+        gameView.setAnimateView((AnimateView) findViewById(R.id.anim));
         
         gameView.setMode(GameView.READY);
         

@@ -59,16 +59,16 @@ public class Tile {
     public void setPred(Tile p) { pred = p; }
     
     
-    public boolean animateDown(int height) {
-    	yOffset += 10; //TODO magic number
-    	
-    	if (yOffset >= height) {
-    		yOffset = 0;
-    		return true;
-    	} else {
-    	   	return false;
-    	}
-    }
+//    public boolean animateDown(int height) {
+//    	yOffset += 10; //TODO magic number
+//    	
+//    	if (yOffset >= height) {
+//    		yOffset = 0;
+//    		return true;
+//    	} else {
+//    	   	return false;
+//    	}
+//    }
     
 //    public boolean equals(Tile other) {
 //        if (x == other.x && y == other.y) {

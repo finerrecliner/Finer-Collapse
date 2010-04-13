@@ -22,7 +22,7 @@ import android.widget.TextView;
  * 
  * 
  */
-public class GameView extends TileView implements AnimationListener {
+public class GameView extends TileView {
 
     private static final String TAG = "GameView";
 
@@ -57,6 +57,11 @@ public class GameView extends TileView implements AnimationListener {
      * mStatusText: text shows to the user in some run states
      */
     private TextView mStatusText;
+    
+    /**
+     * mAnimateLayer: used to animate specific game tiles
+     */
+    private AnimateView mAnimateLayer;
 
     /**
      * board: an array that represents the entire board
@@ -68,8 +73,6 @@ public class GameView extends TileView implements AnimationListener {
      */
     private static final Random RNG = new Random();
     
-    /* animation */
-    private Animation mSlideDown;
 
     /**
      * Create a simple handler that we can use to cause animation to happen.  We
@@ -109,8 +112,6 @@ public class GameView extends TileView implements AnimationListener {
 
         Resources r = this.getContext().getResources();
         
-        mSlideDown = AnimationUtils.loadAnimation(this.getContext(), R.anim.slide_down);
-        
         resetTiles(4); //TODO what does this do?
         loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
         loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
@@ -122,7 +123,7 @@ public class GameView extends TileView implements AnimationListener {
     private void initNewGame() {
     	board.clear();
 
-    	for (int i = 0; i < 2; i++){
+    	for (int i = 0; i < 2; i++){  //TODO magic number
     		newRow();
     	}
     	
@@ -234,7 +235,6 @@ public class GameView extends TileView implements AnimationListener {
             return (true);
         }
 
-        //TODO should be on user clicks
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             if (mMode == RUNNING) {
             	setRandomBoard();
@@ -244,7 +244,9 @@ public class GameView extends TileView implements AnimationListener {
         
         if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
             if (mMode == RUNNING) {
-            	this.startAnimation(mSlideDown);
+            	mAnimateLayer.animate();
+            	//copy all tiles to Animate View
+            	
             	return (true);
             }
         }
@@ -267,6 +269,10 @@ public class GameView extends TileView implements AnimationListener {
         mStatusText = newView;
     }
 
+    public void setAnimateView(AnimateView newView) {
+    	mAnimateLayer = newView;
+    }
+    
     /**
      * Updates the current mode of the application (RUNNING or PAUSED or the like)
      * as well as sets the visibility of textview for notification
@@ -279,6 +285,7 @@ public class GameView extends TileView implements AnimationListener {
 
         if (newMode == RUNNING & oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
+            mAnimateLayer.setVisibility(View.INVISIBLE);
             update();
             return;
         }
@@ -299,6 +306,7 @@ public class GameView extends TileView implements AnimationListener {
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
+        mAnimateLayer.setVisibility(View.VISIBLE);
     }
 
 
@@ -387,7 +395,7 @@ public class GameView extends TileView implements AnimationListener {
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
-    		int color = (RNG.nextInt(3) + 1);
+    		int color = (RNG.nextInt(3) + 1);  //TODO magic number
     		getTile(x, mYTileCount - 1).setColor(color);
     	}
     }
@@ -462,9 +470,7 @@ public class GameView extends TileView implements AnimationListener {
         int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
         int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
         
-        if (mMode == RUNNING) {
-        	breadthFirstSearch(x, y);
-        	
+        if (mMode == RUNNING) {        	
         	//TODO check that the tile clicked was not blank!
         	
         	//all touching tiles that have the same color as the clicked tile will be set to BLANK
@@ -522,22 +528,5 @@ public class GameView extends TileView implements AnimationListener {
     }
 
 
-	@Override
-	public void onAnimationEnd(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onAnimationRepeat(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onAnimationStart(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
     
 }
