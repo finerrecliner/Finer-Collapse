@@ -12,18 +12,25 @@
 		    android:layout_width="fill_parent" 
 		    android:layout_height="wrap_content" 
 		    android:text="Score = 0"/>
-		
-		<com.finercollapse.GameView
-			android:id="@+id/board"
-			android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    app:tileSize="12"/>
 		    
-		<com.finercollapse.AnimateView
-			android:id="@+id/anim"
-			android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    app:tileSize="12"/>
+		<FrameLayout  
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" >
+		    
+			<com.finercollapse.GameView
+				android:id="@+id/board"
+				android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    app:tileSize="12"/>
+			    
+			<com.finercollapse.AnimateView
+				android:id="@+id/anim"
+				android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    app:tileSize="12"/>
+			    
+		</FrameLayout>
+		    
 	</RelativeLayout>
 	
 	<RelativeLayout

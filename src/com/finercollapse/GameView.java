@@ -36,6 +36,7 @@ public class GameView extends TileView {
     public static final int READY = 1;
     public static final int RUNNING = 2;
     public static final int LOSE = 3;
+    public static final int ANIMATE = 4;
 
     /**
      * Labels for the drawables that will be loaded into the TileView class
@@ -254,10 +255,6 @@ public class GameView extends TileView {
         return super.onKeyDown(keyCode, msg);
     }
  
-    @Override
-    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-    	return true;
-    }
     
     /**
      * Sets the TextView that will be used to give information (such as "Game
@@ -285,7 +282,7 @@ public class GameView extends TileView {
 
         if (newMode == RUNNING & oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
-            mAnimateLayer.setVisibility(View.INVISIBLE);
+            mAnimateLayer.setVisibility(View.VISIBLE);
             update();
             return;
         }
@@ -303,10 +300,13 @@ public class GameView extends TileView {
                   + res.getString(R.string.mode_lose_suffix);
             clearTiles();
         }
+        if (newMode == ANIMATE) {
+        	return;
+        }
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
-        mAnimateLayer.setVisibility(View.VISIBLE);
+        mAnimateLayer.setVisibility(View.INVISIBLE);
     }
 
 
@@ -364,10 +364,9 @@ public class GameView extends TileView {
     			}
     		}
     		current.setColor(BLANK);
-    		current.setStatus(Tile.BFS.HANDLED);    		
+    		current.setStatus(Tile.BFS.HANDLED);
     	}
     }
-    
     
     
     /**
@@ -428,7 +427,9 @@ public class GameView extends TileView {
     }
     
     
-    private void consolidateTilesStatic() {
+    private boolean consolidateTilesStatic() {
+    	boolean retval = false;
+    	
     	// drop tiles that have a BLANK below them
     	// loop through rows from bottom to top
     	// Do not bother looking at the last row
@@ -436,18 +437,31 @@ public class GameView extends TileView {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
     				Tile currentTile = getTile(x, y);
-    				getTile(x, y+1).setColor(currentTile.getColor());
-    				getTile(x, y).setColor(BLANK);
+    				Tile tileBelow = getTile(x, y+1);
+    				
+    				tileBelow.setNextColor(currentTile.getColor());
+    				currentTile.setColor(BLANK);
+    				tileBelow.updateColor();
+    				
+    				retval = true;
     			}
     		}
     	}
+    	
+    	//TODO remove:
+    	mAnimateLayer.animate();
+    	
     	
     	//TODO shift columns to the right that have a BLANK column to the right of them
     	
+    	return retval;
     }
     
     
-    private void consolidateTiles() {
+    private boolean consolidateTiles() {
+    	Queue<Tile> queue = new LinkedList<Tile>();
+    	boolean retval = false;
+    	
     	// drop tiles that have a BLANK below them
     	// loop through rows from bottom to top
     	// Do not bother looking at the last row
@@ -455,13 +469,51 @@ public class GameView extends TileView {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
     				Tile currentTile = getTile(x, y);
+    				Tile tileBelow = getTile(x, y+1);
     				
-    				getTile(x, y+1).setColor(currentTile.getColor());
-    				getTile(x, y).setColor(BLANK);
+    				queue.add(tileBelow);
+    				mAnimateLayer.getTile(x, y).setColor(GREEN_STAR); //set the color of the Tile on the Animation layer
+    				tileBelow.setNextColor(currentTile.getColor());
+    				currentTile.setColor(BLANK);
+    				retval = true;
     			}
     		}
     	}
+    	
+    	if (retval) {
+	    	mAnimateLayer.animate();
+	
+	    	for (Tile t : queue) {
+	    		t.updateColor();
+	    	}
+	    	mAnimateLayer.clearTiles();
+    	}
+    	
+    	
+    	//TODO shift columns to the right that have a BLANK column to the right of them
+    	
+    	return retval;
     }
+    
+	private void copy(Queue<Tile> tiles) {
+		/* just exit if nothing to do */
+		if (tiles.isEmpty()) {
+			return;
+		}
+		
+		for (Tile t : tiles) {
+			int color = GREEN_STAR;
+			mAnimateLayer.getTile(t.getX(), t.getY()).setColor(color);
+			t.setColor(BLANK);
+		}
+		//setMode(ANIMATE);
+		
+		mAnimateLayer.animate();
+		mAnimateLayer.clearTiles();
+		
+		//setMode(READY);
+	}
+    
     
     
     //TODO documentation
@@ -475,9 +527,9 @@ public class GameView extends TileView {
         	
         	//all touching tiles that have the same color as the clicked tile will be set to BLANK
         	breadthFirstSearch(x, y);
-	        
+        	
         	//TODO consolidate tiles
-        	consolidateTiles();    
+        	while(consolidateTiles());    
         	
         	//check if any tiles are filled in top row
         	if (rowHasTile(0)) {        	//TODO magic number

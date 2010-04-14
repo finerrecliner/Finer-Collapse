@@ -13,6 +13,7 @@ public class Tile {
     private int xOffset;
     private int yOffset;
 	private int color;
+	private int nextColor;
 	private int distance;
     private Tile pred; //predecessor
     private BFS status;
@@ -35,6 +36,7 @@ public class Tile {
     
     private void tileConstructor(int newColor, int newX, int newY) {
         color = newColor;
+        nextColor = 0;
         x = newX;
         y = newY;
         xOffset = 0;
@@ -48,16 +50,21 @@ public class Tile {
     public int getYOffset() { return yOffset; }
     public int getColor() { return color; }
     public BFS getStatus() { return status; }
-    public int getDistance() {return distance; }
+    public int getDistance() { return distance; }
     
     /* modifiers */
 //    public void setXOffset(int xo) { xOffset = xo; }
 //    public void setYOffset(int yo) { yOffset = yo; }
     public void setColor(int c) { color = c; }
+    public void setNextColor(int c) { nextColor = c; }
     public void setStatus(BFS s) { status = s; }
     public void setDistance(int d) { distance = d; }
     public void setPred(Tile p) { pred = p; }
     
+    
+    public void updateColor() {
+    	color = nextColor;
+    }
     
 //    public boolean animateDown(int height) {
 //    	yOffset += 10; //TODO magic number

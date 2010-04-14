@@ -1,5 +1,8 @@
 package com.finercollapse;
 
+import java.util.Queue;
+
+import android.R.integer;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.AttributeSet;
@@ -41,15 +44,13 @@ public class AnimateView extends TileView implements AnimationListener {
 	    loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
 	    loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
 	    loadTile(GREEN_STAR, r.getDrawable(R.drawable.greenstar));
-	    
-	    getTile(0, 0).setColor(GREEN_STAR);
 		
 	}
 	
-	public void animate() {
+	public void animate() {		
 		this.startAnimation(mSlideDown);
 	}
-    
+
     
 	@Override
 	public void onAnimationEnd(Animation arg0) {
