@@ -243,14 +243,12 @@ public class GameView extends TileView {
             }
         }
         
-        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            if (mMode == RUNNING) {
-            	mAnimateLayer.animate();
-            	//copy all tiles to Animate View
-            	
-            	return (true);
-            }
-        }
+//        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+//            if (mMode == RUNNING) {
+//            	
+//            	return (true);
+//            }
+//        }
 
         return super.onKeyDown(keyCode, msg);
     }
@@ -439,7 +437,7 @@ public class GameView extends TileView {
     				Tile currentTile = getTile(x, y);
     				Tile tileBelow = getTile(x, y+1);
     				
-    				tileBelow.setNextColor(currentTile.getColor());
+    				tileBelow.setFutureColor(currentTile.getColor());
     				currentTile.setColor(BLANK);
     				tileBelow.updateColor();
     				
@@ -447,10 +445,7 @@ public class GameView extends TileView {
     			}
     		}
     	}
-    	
-    	//TODO remove:
-    	mAnimateLayer.animate();
-    	
+    	   	
     	
     	//TODO shift columns to the right that have a BLANK column to the right of them
     	
@@ -472,8 +467,8 @@ public class GameView extends TileView {
     				Tile tileBelow = getTile(x, y+1);
     				
     				queue.add(tileBelow);
-    				mAnimateLayer.getTile(x, y).setColor(GREEN_STAR); //set the color of the Tile on the Animation layer
-    				tileBelow.setNextColor(currentTile.getColor());
+    				mAnimateLayer.getTile(x, y).setColor(currentTile.getColor()); //copy color of the currentTile to the Animation layer
+    				tileBelow.setFutureColor(currentTile.getColor());
     				currentTile.setColor(BLANK);
     				retval = true;
     			}
@@ -481,12 +476,7 @@ public class GameView extends TileView {
     	}
     	
     	if (retval) {
-	    	mAnimateLayer.animate();
-	
-	    	for (Tile t : queue) {
-	    		t.updateColor();
-	    	}
-	    	mAnimateLayer.clearTiles();
+	    	mAnimateLayer.animate(queue);
     	}
     	
     	
@@ -495,32 +485,19 @@ public class GameView extends TileView {
     	return retval;
     }
     
-	private void copy(Queue<Tile> tiles) {
-		/* just exit if nothing to do */
-		if (tiles.isEmpty()) {
-			return;
-		}
-		
-		for (Tile t : tiles) {
-			int color = GREEN_STAR;
-			mAnimateLayer.getTile(t.getX(), t.getY()).setColor(color);
-			t.setColor(BLANK);
-		}
-		//setMode(ANIMATE);
-		
-		mAnimateLayer.animate();
-		mAnimateLayer.clearTiles();
-		
-		//setMode(READY);
-	}
-    
-    
+   
     
     //TODO documentation
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
         int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
         int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
+        
+        if (x < 0 || y < 0 || x >= mXTileCount || y >= mYTileCount) {
+        	/* user clicked out of bounds */
+        	Log.w(TAG, "user clicked out of bounds");
+        	return true;
+        }
         
         if (mMode == RUNNING) {        	
         	//TODO check that the tile clicked was not blank!
@@ -530,7 +507,7 @@ public class GameView extends TileView {
         	
         	//TODO consolidate tiles
         	while(consolidateTiles());    
-        	
+        		
         	//check if any tiles are filled in top row
         	if (rowHasTile(0)) {        	//TODO magic number
         		setMode(LOSE);
@@ -545,7 +522,7 @@ public class GameView extends TileView {
         	newRow();
 	    }
         
-		return super.onTouchEvent(event); //TODO: can probably be just "true"
+		return super.onTouchEvent(event);
 	}
     
     

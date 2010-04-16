@@ -1,5 +1,6 @@
 package com.finercollapse;
 
+import java.util.LinkedList;
 import java.util.Queue;
 
 import android.R.integer;
@@ -11,7 +12,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
 
-public class AnimateView extends TileView implements AnimationListener {
+public class AnimateView extends TileView {
     private static final String TAG = "AnimateView";
 	
 	
@@ -25,20 +26,23 @@ public class AnimateView extends TileView implements AnimationListener {
     
     /* animation */
     private Animation mSlideDown;
-	
+    
+	Queue<Tile> mQueue = new LinkedList<Tile>();
+		
  
     public AnimateView(Context context, AttributeSet attrs) {
 		super(context, attrs);
         initAnimateView();
 	}
-
-
+    
+    
 	private void initAnimateView() {
 	    setFocusable(true);
 	
 	    Resources r = this.getContext().getResources();
 	    
 	    mSlideDown = AnimationUtils.loadAnimation(this.getContext(), R.anim.slide_down);
+	    mSlideDown.setAnimationListener(new AnimListener());
 	    
 	    resetTiles(4); //TODO what does this do?
 	    loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
@@ -47,30 +51,34 @@ public class AnimateView extends TileView implements AnimationListener {
 		
 	}
 	
-	public void animate() {		
+	public void animate(Queue<Tile> queue) {		
+		mQueue = queue;
 		this.startAnimation(mSlideDown);
 	}
-
     
-	@Override
-	public void onAnimationEnd(Animation arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+	
+	
+    private final class AnimListener implements Animation.AnimationListener {
 
+        private AnimListener() {
 
-	@Override
-	public void onAnimationRepeat(Animation arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+        }
 
+        public void onAnimationStart(Animation animation) {
+        }
 
-	@Override
-	public void onAnimationStart(Animation arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+        public void onAnimationEnd(Animation animation) {
+        	for (Tile t : mQueue) {
+        		t.updateColor();
+        	}
+        	        	
+    		clearTiles();
+        }
+
+        public void onAnimationRepeat(Animation animation) {
+        }
+    }
+
 
 
 }
