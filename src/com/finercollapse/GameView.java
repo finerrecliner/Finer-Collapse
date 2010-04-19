@@ -445,7 +445,6 @@ public class GameView extends TileView {
     			}
     		}
     	}
-    	   	
     	
     	//TODO shift columns to the right that have a BLANK column to the right of them
     	
@@ -490,39 +489,44 @@ public class GameView extends TileView {
     //TODO documentation
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
-        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
-        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
-        
-        if (x < 0 || y < 0 || x >= mXTileCount || y >= mYTileCount) {
-        	/* user clicked out of bounds */
-        	Log.w(TAG, "user clicked out of bounds");
-        	return true;
-        }
-        
-        if (mMode == RUNNING) {        	
-        	//TODO check that the tile clicked was not blank!
-        	
-        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-        	breadthFirstSearch(x, y);
-        	
-        	//TODO consolidate tiles
-        	while(consolidateTiles());    
-        		
-        	//check if any tiles are filled in top row
-        	if (rowHasTile(0)) {        	//TODO magic number
-        		setMode(LOSE);
-        		return true;
-        	}
-        	//TODO check if any tiles are filled in 2nd row --> warning
-        	if (rowHasTile(1)) {        	//TODO magic number
-        		Log.i(TAG, "user warning: about to lose!");
-        	}
-        	
-        	//push up a new row of tiles
-        	newRow();
-	    }
-        
-		return super.onTouchEvent(event);
+    	int action = event.getAction();
+    	
+    	if (MotionEvent.ACTION_DOWN == action) {
+    	
+	        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
+	        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
+	        
+	        if (x < 0 || y < 0 || x >= mXTileCount || y >= mYTileCount) {
+	        	Log.w(TAG, "user clicked out of bounds");
+	        	return true;
+	        }
+	        
+	        if (mMode == RUNNING) {        	
+	        	//TODO check that the tile clicked was not blank!
+	        	
+	        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
+	        	breadthFirstSearch(x, y);
+	        	
+	        	//consolidate tiles
+	        	//while(consolidateTiles());
+	        	consolidateTiles();
+	        	
+	        	//check if any tiles are filled in top row
+	        	if (rowHasTile(0)) {        	//TODO magic number
+	        		setMode(LOSE);
+	        		return true;
+	        	}
+	        	//TODO check if any tiles are filled in 2nd row --> warning
+	        	if (rowHasTile(1)) {        	//TODO magic number
+	        		Log.i(TAG, "user warning: about to lose!");
+	        	}
+	        	
+	        	//push up a new row of tiles
+	        	newRow();
+	        }
+    	}
+    	
+    	return true;
 	}
     
     

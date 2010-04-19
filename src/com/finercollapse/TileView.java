@@ -72,6 +72,10 @@ public class TileView extends View {
     public Tile getTile(int x, int y) {
     	return mTileGrid[x][y];
     }
+    
+    public Tile getTile(Tile t) {
+    	return mTileGrid[t.getX()][t.getY()];
+    }
 
 
     @Override

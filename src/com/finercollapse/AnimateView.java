@@ -55,8 +55,7 @@ public class AnimateView extends TileView {
 		mQueue = queue;
 		this.startAnimation(mSlideDown);
 	}
-    
-	
+   
 	
     private final class AnimListener implements Animation.AnimationListener {
 
