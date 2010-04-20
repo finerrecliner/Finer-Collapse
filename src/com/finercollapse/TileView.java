@@ -70,6 +70,7 @@ public class TileView extends View {
     }
     
     public Tile getTile(int x, int y) {
+    	//TODO add try catch out of bounds exception
     	return mTileGrid[x][y];
     }
     

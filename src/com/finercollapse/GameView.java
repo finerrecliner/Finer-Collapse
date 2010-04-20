@@ -82,11 +82,18 @@ public class GameView extends TileView {
      */
     private RefreshHandler mRedrawHandler = new RefreshHandler();
 
+	private int mAnimateStartTileX;
+
+	private int mAnimateStartTileY;
+
     class RefreshHandler extends Handler {
 
         @Override
         public void handleMessage(Message msg) {
             GameView.this.update();
+            if (ANIMATE == mMode) {
+            		removeTiles();
+            }
             GameView.this.invalidate();
         }
 
@@ -124,7 +131,7 @@ public class GameView extends TileView {
     private void initNewGame() {
     	board.clear();
 
-    	for (int i = 0; i < 2; i++){  //TODO magic number
+    	for (int i = 0; i < 4; i++){  //TODO magic number
     		newRow();
     	}
     	
@@ -460,7 +467,7 @@ public class GameView extends TileView {
     	// loop through rows from bottom to top
     	// Do not bother looking at the last row
     	for (int x = 0; x < mXTileCount; x++) {
-    		for (int y = mYTileCount-2; y >= 0; y--) {
+    		for (int y = mYTileCount-1; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
     				Tile currentTile = getTile(x, y);
     				Tile tileBelow = getTile(x, y+1);
@@ -501,33 +508,54 @@ public class GameView extends TileView {
 	        	return true;
 	        }
 	        
-	        if (mMode == RUNNING) {        	
-	        	//TODO check that the tile clicked was not blank!
-	        	
-	        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-	        	breadthFirstSearch(x, y);
-	        	
-	        	//consolidate tiles
-	        	//while(consolidateTiles());
-	        	consolidateTiles();
-	        	
-	        	//check if any tiles are filled in top row
-	        	if (rowHasTile(0)) {        	//TODO magic number
-	        		setMode(LOSE);
-	        		return true;
-	        	}
-	        	//TODO check if any tiles are filled in 2nd row --> warning
-	        	if (rowHasTile(1)) {        	//TODO magic number
-	        		Log.i(TAG, "user warning: about to lose!");
-	        	}
-	        	
-	        	//push up a new row of tiles
-	        	newRow();
+	        if (mMode == RUNNING) {
+	        	setAnimateStartTile(x, y);
+	        	setMode(ANIMATE);
 	        }
     	}
     	
     	return true;
 	}
+    
+    private void setAnimateStartTile(int x, int y) {
+		mAnimateStartTileX = x;
+		mAnimateStartTileY = y;
+	}
+
+	private boolean removeTiles(){
+		
+		int x = mAnimateStartTileX;
+		int y = mAnimateStartTileY;
+		boolean retval = true;
+		
+    	//TODO check that the tile clicked was not blank!
+    	
+    	//all touching tiles that have the same color as the clicked tile will be set to BLANK
+    	breadthFirstSearch(x, y);
+
+    	//push up a new row of tiles
+    	newRow();
+    	
+    	//consolidate tiles
+    	boolean moreEmptyTilesExist = true;
+    	while (moreEmptyTilesExist) {
+    		moreEmptyTilesExist = consolidateTiles();
+    	}
+    	
+    	//check if any tiles are filled in top row
+    	if (rowHasTile(0)) {        	//TODO magic number
+    		setMode(LOSE);
+    		return false;
+    	}
+    	//TODO check if any tiles are filled in 2nd row --> warning
+    	if (rowHasTile(1)) {        	//TODO magic number
+    		Log.i(TAG, "user warning: about to lose!");
+    	}
+    	
+    	setMode(RUNNING);
+    	
+    	return retval;
+    }
     
     
     
