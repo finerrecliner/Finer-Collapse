@@ -475,7 +475,7 @@ public class GameView extends TileView {
     				queue.add(tileBelow);
     				mAnimateLayer.getTile(x, y).setColor(currentTile.getColor()); //copy color of the currentTile to the Animation layer
     				tileBelow.setFutureColor(currentTile.getColor());
-    				currentTile.setColor(BLANK);
+    				currentTile.setColor(BLANK); //TODO flicker because we are BLANKing a tile before updating the animation layer's colors (below)
     				retval = true;
     			}
     		}
@@ -539,7 +539,8 @@ public class GameView extends TileView {
     	//consolidate tiles
     	boolean moreEmptyTilesExist = true;
     	while (moreEmptyTilesExist) {
-    		moreEmptyTilesExist = consolidateTiles();
+    		moreEmptyTilesExist = consolidateTilesStatic();
+    		this.printAll();
     	}
     	
     	//check if any tiles are filled in top row

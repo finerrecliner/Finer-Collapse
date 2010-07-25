@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -159,7 +160,14 @@ public class TileView extends View {
     	}
     }
 
-    
+    public void printAll() {
+        for (int x = 0; x < mXTileCount; x++) {
+            for (int y = 0; y < mYTileCount; y++) {
+            	Log.println(0, toString(mTileGrid[x][y].getColor())); //TODO fix asap
+            }
+            System.out.println("\n");
+        }
+    }
     
 
     @Override
