@@ -51,13 +51,13 @@ public class AnimateView extends TileView {
 		
 	}
 	
-	public void animate(Queue<Tile> queue) {		
+	public void animate(Queue<Tile> queue) {
 		mQueue = queue;
 		this.startAnimation(mSlideDown);
 	}
-   
+
 	
-    private final class AnimListener implements Animation.AnimationListener {
+	private final class AnimListener implements Animation.AnimationListener {
 
         private AnimListener() {
 
@@ -67,11 +67,12 @@ public class AnimateView extends TileView {
         }
 
         public void onAnimationEnd(Animation animation) {
-        	for (Tile t : mQueue) {
-        		t.updateColor();
-        	}
+//        	for (Tile t : mQueue) {
+//        		t.updateColor();
+//        	}
         	        	
     		clearTiles();
+    		mQueue.clear();
         }
 
         public void onAnimationRepeat(Animation animation) {

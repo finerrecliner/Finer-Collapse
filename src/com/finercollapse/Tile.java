@@ -52,6 +52,24 @@ public class Tile {
     public BFS getStatus() { return status; }
     public int getDistance() { return distance; }
     
+    /* returns Tile color as a single character 
+     * returns a space if an empty tile.
+     * Letter means colors. Example: Red = 'r' */
+    public char getColorChar() {
+    	char retval;
+    	
+    	switch (color) {
+    	case 0: retval = ' '; break;
+    	case 1: retval = 'r'; break;
+    	case 2: retval = 'y'; break;
+    	case 3: retval = 'g'; break;
+    	default: retval = 'X';	//error case
+    	}
+    	
+    	return retval;
+    	//return Character.forDigit(color,10);  //TODO remove
+    }
+    
     /* modifiers */
 //    public void setXOffset(int xo) { xOffset = xo; }
 //    public void setYOffset(int yo) { yOffset = yo; }

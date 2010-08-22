@@ -250,12 +250,9 @@ public class GameView extends TileView {
             }
         }
         
-//        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-//            if (mMode == RUNNING) {
-//            	
-//            	return (true);
-//            }
-//        }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        	this.printAll();
+        }
 
         return super.onKeyDown(keyCode, msg);
     }
@@ -474,7 +471,7 @@ public class GameView extends TileView {
     				
     				queue.add(tileBelow);
     				mAnimateLayer.getTile(x, y).setColor(currentTile.getColor()); //copy color of the currentTile to the Animation layer
-    				tileBelow.setFutureColor(currentTile.getColor());
+    				tileBelow.setColor(currentTile.getColor());
     				currentTile.setColor(BLANK); //TODO flicker because we are BLANKing a tile before updating the animation layer's colors (below)
     				retval = true;
     			}
@@ -483,6 +480,9 @@ public class GameView extends TileView {
     	
     	if (retval) {
 	    	mAnimateLayer.animate(queue);
+	    	Log.i("DEBUG","Animation Layer");
+	    	mAnimateLayer.printAll();
+            this.invalidate();
     	}
     	
     	
@@ -527,6 +527,7 @@ public class GameView extends TileView {
 		int x = mAnimateStartTileX;
 		int y = mAnimateStartTileY;
 		boolean retval = true;
+		boolean moreEmptyTilesExist;
 		
     	//TODO check that the tile clicked was not blank!
     	
@@ -537,9 +538,7 @@ public class GameView extends TileView {
     	newRow();
     	
     	//consolidate tiles
-    	boolean moreEmptyTilesExist = true;
-    	while (moreEmptyTilesExist) {
-    		moreEmptyTilesExist = consolidateTilesStatic();
+    	while (moreEmptyTilesExist = consolidateTiles()) {
     		this.printAll();
     	}
     	

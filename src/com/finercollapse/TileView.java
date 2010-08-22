@@ -161,12 +161,16 @@ public class TileView extends View {
     }
 
     public void printAll() {
-        for (int x = 0; x < mXTileCount; x++) {
-            for (int y = 0; y < mYTileCount; y++) {
-            	Log.println(0, toString(mTileGrid[x][y].getColor())); //TODO fix asap
+    	String buffer = ""; 
+    	
+    	for (int y = 0; y < mYTileCount; y++) {
+    		for (int x = 0; x < mXTileCount; x++) {
+            	buffer += mTileGrid[x][y].getColorChar() + " ";
             }
-            System.out.println("\n");
+            System.out.println(buffer + "\n");
+            buffer = "";	//clear buffer for next line
         }
+    	System.out.println("---------------\n");
     }
     
 
