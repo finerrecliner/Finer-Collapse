@@ -22,13 +22,7 @@
 				android:layout_width="fill_parent"
 			    android:layout_height="wrap_content"
 			    app:tileSize="12"/>
-			    
-			<com.finercollapse.AnimateView
-				android:id="@+id/anim"
-				android:layout_width="fill_parent"
-			    android:layout_height="wrap_content"
-			    app:tileSize="12"/>
-			    
+			     
 		</FrameLayout>
 		    
 	</RelativeLayout>

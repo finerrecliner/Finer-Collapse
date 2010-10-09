@@ -52,17 +52,22 @@ public class GameView extends TileView {
      * captured.
      */
     private long score = 0;
-    private long frameRate = 10;
+    private long mMoveDelay = 50;
+    /**
+     * mLastMove: tracks the absolute time when the snake last moved, and is used
+     * to determine if a move should be made based on mMoveDelay.
+     */
+    private long mLastMove;
+    
+	private int mBFSStartTileX;
+	private int mBFSStartTileY;
+    
     
     /**
      * mStatusText: text shows to the user in some run states
      */
     private TextView mStatusText;
     
-    /**
-     * mAnimateLayer: used to animate specific game tiles
-     */
-    private AnimateView mAnimateLayer;
 
     /**
      * board: an array that represents the entire board
@@ -82,18 +87,11 @@ public class GameView extends TileView {
      */
     private RefreshHandler mRedrawHandler = new RefreshHandler();
 
-	private int mAnimateStartTileX;
-
-	private int mAnimateStartTileY;
-
     class RefreshHandler extends Handler {
 
         @Override
         public void handleMessage(Message msg) {
             GameView.this.update();
-            if (ANIMATE == mMode) {
-            		removeTiles();
-            }
             GameView.this.invalidate();
         }
 
@@ -124,7 +122,6 @@ public class GameView extends TileView {
         loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
         loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
         loadTile(GREEN_STAR, r.getDrawable(R.drawable.greenstar));
-    	
     }
     
 
@@ -136,7 +133,7 @@ public class GameView extends TileView {
     	}
     	
     	
-        frameRate = 600;
+        mMoveDelay = 600;
         score = 0;
     }
 
@@ -170,7 +167,7 @@ public class GameView extends TileView {
     public Bundle saveState() {
         Bundle map = new Bundle();
 
-        map.putLong("mMoveDelay", Long.valueOf(frameRate));
+        map.putLong("mMoveDelay", Long.valueOf(mMoveDelay));
         map.putLong("mScore", Long.valueOf(score));
 
         return map;
@@ -202,14 +199,12 @@ public class GameView extends TileView {
     public void restoreState(Bundle icicle) {
         setMode(PAUSE);
 
-        frameRate = icicle.getLong("mMoveDelay");
+        mMoveDelay = icicle.getLong("mMoveDelay");
         score = icicle.getLong("mScore");
     }
 
     /*
-     * handles key events in the game. Update the direction our snake is traveling
-     * based on the DPAD. Ignore events that would cause the snake to immediately
-     * turn back on itself.
+     * handles key events in the game.
      * 
      * (non-Javadoc)
      * 
@@ -246,6 +241,7 @@ public class GameView extends TileView {
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             if (mMode == RUNNING) {
             	setRandomBoard();
+            	update();
             	return (true);
             }
         }
@@ -256,7 +252,30 @@ public class GameView extends TileView {
 
         return super.onKeyDown(keyCode, msg);
     }
- 
+    
+    //TODO documentation
+    @Override
+	public boolean onTouchEvent(MotionEvent event) {
+    	int action = event.getAction();
+    	
+    	if (MotionEvent.ACTION_DOWN == action) {
+    	
+	        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
+	        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
+	        
+	        if (x < 0 || y < 0 || x >= mXTileCount || y >= mYTileCount) {
+	        	Log.w(TAG, "user clicked out of bounds");
+	        	return true;
+	        }
+	        
+	        if (mMode == RUNNING) {
+	        	setBFSStartTile(x, y);
+	        	removeTiles();
+	        }
+    	}
+    	
+    	return true;
+	}
     
     /**
      * Sets the TextView that will be used to give information (such as "Game
@@ -268,10 +287,7 @@ public class GameView extends TileView {
         mStatusText = newView;
     }
 
-    public void setAnimateView(AnimateView newView) {
-    	mAnimateLayer = newView;
-    }
-    
+
     /**
      * Updates the current mode of the application (RUNNING or PAUSED or the like)
      * as well as sets the visibility of textview for notification
@@ -284,7 +300,6 @@ public class GameView extends TileView {
 
         if (newMode == RUNNING & oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
-            mAnimateLayer.setVisibility(View.VISIBLE);
             update();
             return;
         }
@@ -308,7 +323,6 @@ public class GameView extends TileView {
 
         mStatusText.setText(str);
         mStatusText.setVisibility(View.VISIBLE);
-        mAnimateLayer.setVisibility(View.INVISIBLE);
     }
 
 
@@ -317,15 +331,37 @@ public class GameView extends TileView {
      * state, determining if a move should be made, updating the snake's location.
      */
     public void update() {
-        if (mMode == RUNNING) {
-            //long now = System.currentTimeMillis();
-          
-            mRedrawHandler.sleep(frameRate);
-        }
+    	long now = System.currentTimeMillis();
+    	boolean isDone = false;
+    	
+    	if (mMode == ANIMATE) {
+	        if (now - mLastMove > mMoveDelay) {
+	        	/* for each tile on the board */
+	            for (int x = 0; x < mXTileCount; x++) {
+	            	for (int y = mYTileCount-1; y >= 0; y--) { // start from bottom, work your way up.
+	            		Tile current = getTile(x,y);
+	            		
+	            		isDone = current.animateDown(mTileSize);
+	            		
+	            		if (isDone) {
+	            			getBelow(current).setColor(current.getColor());
+	            			current.setColor(getAbove(current).getColor());
+	            			current.resetOffset();
+	            		}
+	            	}
+	            } 
+	            mLastMove = now;
+	        }
+    	}
 
+        mRedrawHandler.sleep(mMoveDelay);
     }
 
-    //breadth-first-search algorithm
+    /**
+     * breadth-first-search algorithm
+     * @param sourceX
+     * @param sourceY
+     */
     private void breadthFirstSearch(int sourceX, int sourceY) {
     	Queue<Tile> queue = new LinkedList<Tile>();
     	Tile source = getTile(sourceX, sourceY);
@@ -336,12 +372,12 @@ public class GameView extends TileView {
     		for (int y = 0; y < mYTileCount; y++) {
     				Tile current = getTile(x, y);
     				
-    				current.setStatus(Tile.BFS.UNDISCOVERED);
+    				current.setBFSStatus(Tile.BFS.UNDISCOVERED);
     				current.setDistance(-1);
     				current.setPred(null);
     		}
     	}
-    	source.setStatus(Tile.BFS.DISCOVERED);
+    	source.setBFSStatus(Tile.BFS.DISCOVERED);
     	source.setDistance(0);
     	
     	queue.add(source);
@@ -357,16 +393,16 @@ public class GameView extends TileView {
     		//for each adjacent Tile
     		for (Tile a : adj) {
     			if (a != null && 
-    				a.getStatus() == Tile.BFS.UNDISCOVERED &&
+    				a.getBFSStatus() == Tile.BFS.UNDISCOVERED &&
     				a.getColor() == current.getColor()) {
-	    				a.setStatus(Tile.BFS.DISCOVERED);
-	    				a.setDistance(current.getDistance() + 1);
-	    				a.setPred(current);
+	    				a.setBFSStatus(Tile.BFS.DISCOVERED);
+	    				a.setDistance(current.getDistance() + 1); //TODO i don't think we care about distance
+	    				a.setPred(current); //TODO or this
 	    				queue.add(a);
     			}
     		}
     		current.setColor(BLANK);
-    		current.setStatus(Tile.BFS.HANDLED);
+    		current.setBFSStatus(Tile.BFS.HANDLED);
     	}
     }
     
@@ -438,12 +474,10 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				Tile currentTile = getTile(x, y);
-    				Tile tileBelow = getTile(x, y+1);
-    				
-    				tileBelow.setFutureColor(currentTile.getColor());
-    				currentTile.setColor(BLANK);
-    				tileBelow.updateColor();
+    				Tile current = getTile(x, y);
+    				Tile below = getBelow(current);
+    				below.setColor(current.getColor());
+    				current.setColor(BLANK);
     				
     				retval = true;
     			}
@@ -455,77 +489,20 @@ public class GameView extends TileView {
     	return retval;
     }
     
-    
-    private boolean consolidateTiles() {
-    	Queue<Tile> queue = new LinkedList<Tile>();
-    	boolean retval = false;
-    	
-    	// drop tiles that have a BLANK below them
-    	// loop through rows from bottom to top
-    	// Do not bother looking at the last row
-    	for (int x = 0; x < mXTileCount; x++) {
-    		for (int y = mYTileCount-1; y >= 0; y--) {
-    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				Tile currentTile = getTile(x, y);
-    				Tile tileBelow = getTile(x, y+1);
-    				
-    				queue.add(tileBelow);
-    				mAnimateLayer.getTile(x, y).setColor(currentTile.getColor()); //copy color of the currentTile to the Animation layer
-    				tileBelow.setColor(currentTile.getColor());
-    				currentTile.setColor(BLANK); //TODO flicker because we are BLANKing a tile before updating the animation layer's colors (below)
-    				retval = true;
-    			}
-    		}
-    	}
-    	
-    	if (retval) {
-	    	mAnimateLayer.animate(queue);
-	    	Log.i("DEBUG","Animation Layer");
-	    	mAnimateLayer.printAll();
-            this.invalidate();
-    	}
-    	
-    	
-    	//TODO shift columns to the right that have a BLANK column to the right of them
-    	
-    	return retval;
-    }
-    
+      
    
     
-    //TODO documentation
-    @Override
-	public boolean onTouchEvent(MotionEvent event) {
-    	int action = event.getAction();
-    	
-    	if (MotionEvent.ACTION_DOWN == action) {
-    	
-	        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
-	        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
-	        
-	        if (x < 0 || y < 0 || x >= mXTileCount || y >= mYTileCount) {
-	        	Log.w(TAG, "user clicked out of bounds");
-	        	return true;
-	        }
-	        
-	        if (mMode == RUNNING) {
-	        	setAnimateStartTile(x, y);
-	        	setMode(ANIMATE);
-	        }
-    	}
-    	
-    	return true;
-	}
+
     
-    private void setAnimateStartTile(int x, int y) {
-		mAnimateStartTileX = x;
-		mAnimateStartTileY = y;
+    private void setBFSStartTile(int x, int y) {
+		mBFSStartTileX = x;
+		mBFSStartTileY = y;
 	}
 
 	private boolean removeTiles(){
 		
-		int x = mAnimateStartTileX;
-		int y = mAnimateStartTileY;
+		int x = mBFSStartTileX; //TODO do we really need to copy?
+		int y = mBFSStartTileY;
 		boolean retval = true;
 		boolean moreEmptyTilesExist;
 		
@@ -534,13 +511,11 @@ public class GameView extends TileView {
     	//all touching tiles that have the same color as the clicked tile will be set to BLANK
     	breadthFirstSearch(x, y);
 
+    	//consolidate tiles
+    	while (consolidateTilesStatic()) {}
+    	
     	//push up a new row of tiles
     	newRow();
-    	
-    	//consolidate tiles
-    	while (moreEmptyTilesExist = consolidateTiles()) {
-    		this.printAll();
-    	}
     	
     	//check if any tiles are filled in top row
     	if (rowHasTile(0)) {        	//TODO magic number

@@ -75,10 +75,6 @@ public class TileView extends View {
     	return mTileGrid[x][y];
     }
     
-    public Tile getTile(Tile t) {
-    	return mTileGrid[t.getX()][t.getY()];
-    }
-
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -124,6 +120,7 @@ public class TileView extends View {
         }
     }
     
+    /* 0,0 is at upper left */
     public Tile getAbove(Tile t) {
     	try {
     		return getTile(t.getX(), t.getY() + 1);
@@ -133,13 +130,17 @@ public class TileView extends View {
     	}
     }
     
-    public Tile getBelow(Tile t) {
+    public Tile getBelow(Tile t, int i) {
     	try {
-    		return getTile(t.getX(), t.getY() - 1);
+    		return getTile(t.getX(), t.getY() + i);
     	}
     	catch (ArrayIndexOutOfBoundsException e) {
     		return null;
     	}
+    }
+    
+    public Tile getBelow(Tile t) {
+    	return getBelow(t,1);
     }
     
     public Tile getRight(Tile t) {
