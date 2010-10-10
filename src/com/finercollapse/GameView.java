@@ -12,9 +12,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.Animation.AnimationListener;
 import android.widget.TextView;
 
 /**
@@ -241,7 +238,6 @@ public class GameView extends TileView {
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             if (mMode == RUNNING) {
             	setRandomBoard();
-            	update();
             	return (true);
             }
         }
@@ -298,7 +294,7 @@ public class GameView extends TileView {
         int oldMode = mMode;
         mMode = newMode;
 
-        if (newMode == RUNNING & oldMode != RUNNING) {
+        if (newMode == RUNNING && oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
             update();
             return;
@@ -347,6 +343,7 @@ public class GameView extends TileView {
 	            			getBelow(current).setColor(current.getColor());
 	            			current.setColor(getAbove(current).getColor());
 	            			current.resetOffset();
+	            			mMode = RUNNING;
 	            		}
 	            	}
 	            } 
@@ -404,6 +401,7 @@ public class GameView extends TileView {
     		current.setColor(BLANK);
     		current.setBFSStatus(Tile.BFS.HANDLED);
     	}
+    	return;
     }
     
     
@@ -490,7 +488,31 @@ public class GameView extends TileView {
     }
     
       
-   
+    
+    private boolean consolidateTiles() {
+    	boolean retval = false;
+    	
+    	// drop tiles that have a BLANK below them
+    	// loop through rows from bottom to top
+    	// Do not bother looking at the last row
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = mYTileCount-2; y >= 0; y--) {
+    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
+    				Tile current = getTile(x, y);
+    				
+    				current.setAnimStatus(Tile.AnimStatus.DOWN);
+    				
+    				retval = true;
+    			}
+    		}
+    	}
+    	setMode(ANIMATE);
+    	
+    	//TODO shift columns to the right that have a BLANK column to the right of them
+    	
+    	//setMode(RUNNING);
+    	return retval;
+    }
     
 
     
@@ -504,7 +526,6 @@ public class GameView extends TileView {
 		int x = mBFSStartTileX; //TODO do we really need to copy?
 		int y = mBFSStartTileY;
 		boolean retval = true;
-		boolean moreEmptyTilesExist;
 		
     	//TODO check that the tile clicked was not blank!
     	
@@ -512,10 +533,10 @@ public class GameView extends TileView {
     	breadthFirstSearch(x, y);
 
     	//consolidate tiles
-    	while (consolidateTilesStatic()) {}
+    	while (consolidateTiles()) {}
     	
     	//push up a new row of tiles
-    	newRow();
+    	//newRow();
     	
     	//check if any tiles are filled in top row
     	if (rowHasTile(0)) {        	//TODO magic number
