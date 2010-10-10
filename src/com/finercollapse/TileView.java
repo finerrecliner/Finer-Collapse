@@ -65,7 +65,6 @@ public class TileView extends View {
      * 
      * @param tilecount
      */
-    
     public void resetTiles(int tilecount) {
     	mTileArray = new Bitmap[tilecount];
     }
@@ -112,7 +111,7 @@ public class TileView extends View {
      * Resets all tiles to 0 (empty)
      * 
      */
-    public void clearTiles() {
+    public void clearAllTiles() {
         for (int x = 0; x < mXTileCount; x++) {
             for (int y = 0; y < mYTileCount; y++) {
             	mTileGrid[x][y].setColor(0);
@@ -180,7 +179,7 @@ public class TileView extends View {
         super.onDraw(canvas);
         for (int x = 0; x < mXTileCount; x += 1) {
             for (int y = 0; y < mYTileCount; y += 1) {
-                if (mTileGrid[x][y].getColor() > 0) {
+                if (mTileGrid[x][y].getColor() >= 0) { // TODO >
                     canvas.drawBitmap(mTileArray[mTileGrid[x][y].getColor()], 
                     		mTileGrid[x][y].getXOffset() + mXOffset + (x * mTileSize),
                     		mTileGrid[x][y].getYOffset() + mYOffset + (y * mTileSize),

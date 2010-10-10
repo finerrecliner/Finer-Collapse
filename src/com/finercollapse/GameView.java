@@ -29,7 +29,6 @@ public class GameView extends TileView {
      * reasons.
      */
     private int mMode = READY;
-    public static final int PAUSE = 0;
     public static final int READY = 1;
     public static final int RUNNING = 2;
     public static final int LOSE = 3;
@@ -38,7 +37,7 @@ public class GameView extends TileView {
     /**
      * Labels for the drawables that will be loaded into the TileView class
      */
-    private static final int BLANK = 0;
+    private static final int BLANK = 0; 
     private static final int RED_STAR = 1;
     private static final int YELLOW_STAR = 2;
     private static final int GREEN_STAR = 3;
@@ -65,11 +64,6 @@ public class GameView extends TileView {
      */
     private TextView mStatusText;
     
-
-    /**
-     * board: an array that represents the entire board
-     */
-    private ArrayList<Coordinate> board = new ArrayList<Coordinate>(); 
 
     /**
      * Everyone needs a little randomness in their life
@@ -119,11 +113,12 @@ public class GameView extends TileView {
         loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
         loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
         loadTile(GREEN_STAR, r.getDrawable(R.drawable.greenstar));
+        loadTile(BLANK, r.getDrawable(R.drawable.blankstar));
     }
     
 
     private void initNewGame() {
-    	board.clear();
+    	clearAllTiles();
 
     	for (int i = 0; i < 4; i++){  //TODO magic number
     		newRow();
@@ -134,71 +129,6 @@ public class GameView extends TileView {
         score = 0;
     }
 
-
-    /**
-     * Given a ArrayList of coordinates, we need to flatten them into an array of
-     * ints before we can stuff them into a map for flattening and storage.
-     * 
-     * @param cvec : a ArrayList of Coordinate objects
-     * @return : a simple array containing the x/y values of the coordinates
-     * as [x1,y1,x2,y2,x3,y3...]
-     */
-    private int[] coordArrayListToArray(ArrayList<Coordinate> cvec) {
-        int count = cvec.size();
-        int[] rawArray = new int[count * 2];
-        for (int index = 0; index < count; index++) {
-            Coordinate c = cvec.get(index);
-            rawArray[2 * index] = c.x;
-            rawArray[2 * index + 1] = c.y;
-        }
-        return rawArray;
-    }
-
-    /**
-     * Save game state so that the user does not lose anything
-     * if the game process is killed while we are in the 
-     * background.
-     * 
-     * @return a Bundle with this view's state
-     */
-    public Bundle saveState() {
-        Bundle map = new Bundle();
-
-        map.putLong("mMoveDelay", Long.valueOf(mMoveDelay));
-        map.putLong("mScore", Long.valueOf(score));
-
-        return map;
-    }
-
-    /**
-     * Given a flattened array of ordinate pairs, we reconstitute them into a
-     * ArrayList of Coordinate objects
-     * 
-     * @param rawArray : [x1,y1,x2,y2,...]
-     * @return a ArrayList of Coordinates
-     */
-    private ArrayList<Coordinate> coordArrayToArrayList(int[] rawArray) {
-        ArrayList<Coordinate> coordArrayList = new ArrayList<Coordinate>();
-
-        int coordCount = rawArray.length;
-        for (int index = 0; index < coordCount; index += 2) {
-            Coordinate c = new Coordinate(rawArray[index], rawArray[index + 1]);
-            coordArrayList.add(c);
-        }
-        return coordArrayList;
-    }
-
-    /**
-     * Restore game state if our process is being relaunched
-     * 
-     * @param icicle a Bundle containing the game state
-     */
-    public void restoreState(Bundle icicle) {
-        setMode(PAUSE);
-
-        mMoveDelay = icicle.getLong("mMoveDelay");
-        score = icicle.getLong("mScore");
-    }
 
     /*
      * handles key events in the game.
@@ -217,16 +147,6 @@ public class GameView extends TileView {
                  * we should start a new game.
                  */
                 initNewGame();
-                setMode(RUNNING);
-                update();
-                return (true);
-            }
-
-            if (mMode == PAUSE) {
-                /*
-                 * If the game is merely paused, we should just continue where
-                 * we left off.
-                 */
                 setMode(RUNNING);
                 update();
                 return (true);
@@ -265,7 +185,8 @@ public class GameView extends TileView {
 	        }
 	        
 	        if (mMode == RUNNING) {
-	        	setBFSStartTile(x, y);
+	        	//setBFSStartTile(x, y);
+	        	getTile(x,y).setColor(BLANK);
 	        	removeTiles();
 	        }
     	}
@@ -302,16 +223,13 @@ public class GameView extends TileView {
 
         Resources res = getContext().getResources();
         CharSequence str = "";
-        if (newMode == PAUSE) {
-            str = res.getText(R.string.mode_pause);
-        }
         if (newMode == READY) {
             str = res.getText(R.string.mode_ready);
         }
         if (newMode == LOSE) {
             str = res.getString(R.string.mode_lose_prefix) + score
                   + res.getString(R.string.mode_lose_suffix);
-            clearTiles();
+            clearAllTiles();
         }
         if (newMode == ANIMATE) {
         	return;
@@ -327,15 +245,21 @@ public class GameView extends TileView {
      * state, determining if a move should be made, updating the snake's location.
      */
     public void update() {
-    	long now = System.currentTimeMillis();
-    	boolean isDone = false;
-    	
     	if (mMode == ANIMATE) {
-	        if (now - mLastMove > mMoveDelay) {
+        	long now = System.currentTimeMillis();
+        	
+    		if (now - mLastMove > mMoveDelay) {
 	        	/* for each tile on the board */
 	            for (int x = 0; x < mXTileCount; x++) {
 	            	for (int y = mYTileCount-1; y >= 0; y--) { // start from bottom, work your way up.
 	            		Tile current = getTile(x,y);
+	            		boolean isDone = false;
+	            		boolean nothingToAnimate = true;
+	            		
+	            		//check if at least one tile wants to animate
+	            		if (current.getAnimStatus() != Tile.AnimStatus.IDLE) {
+	            			nothingToAnimate = false;
+	            		}
 	            		
 	            		isDone = current.animateDown(mTileSize);
 	            		
@@ -344,6 +268,10 @@ public class GameView extends TileView {
 	            			current.setColor(getAbove(current).getColor());
 	            			current.resetOffset();
 	            			mMode = RUNNING;
+	            		}
+	            		
+	            		if (nothingToAnimate) {
+	            			setMode(RUNNING);
 	            		}
 	            	}
 	            } 
@@ -492,7 +420,7 @@ public class GameView extends TileView {
     private boolean consolidateTiles() {
     	boolean retval = false;
     	
-    	// drop tiles that have a BLANK below them
+    	// drop tiles one space that have a BLANK below them
     	// loop through rows from bottom to top
     	// Do not bother looking at the last row
     	for (int x = 0; x < mXTileCount; x++) {
@@ -530,10 +458,11 @@ public class GameView extends TileView {
     	//TODO check that the tile clicked was not blank!
     	
     	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-    	breadthFirstSearch(x, y);
+    	//breadthFirstSearch(x, y); //TODO put back in. Right now, we just blank the individual tile that was clicked
 
     	//consolidate tiles
-    	while (consolidateTiles()) {}
+    	//while (consolidateTiles()) {} //TODO put back in
+		consolidateTiles(); //Should make a tile drop one space
     	
     	//push up a new row of tiles
     	//newRow();
@@ -552,38 +481,5 @@ public class GameView extends TileView {
     	
     	return retval;
     }
-    
-    
-    
-     /**
-     * Simple class containing two integer values and a comparison function.
-     * There's probably something I should use instead, but this was quick and
-     * easy to build.
-     * 
-     */
-    private class Coordinate {
-        public int x;
-        public int y;
-
-
-        public Coordinate(int newX, int newY) {
-            x = newX;
-            y = newY;
-        }
-
-        public boolean equals(Coordinate other) {
-            if (x == other.x && y == other.y) {
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return "Coordinate: [" + x + "," + y + "]";
-        }
-    }
-
-
-    
+        
 }

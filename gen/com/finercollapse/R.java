@@ -22,10 +22,11 @@ containing a value of this type.
         public static final int tileSize=0x7f010000;
     }
     public static final class drawable {
-        public static final int greenstar=0x7f020000;
-        public static final int icon=0x7f020001;
-        public static final int redstar=0x7f020002;
-        public static final int yellowstar=0x7f020003;
+        public static final int blankstar=0x7f020000;
+        public static final int greenstar=0x7f020001;
+        public static final int icon=0x7f020002;
+        public static final int redstar=0x7f020003;
+        public static final int yellowstar=0x7f020004;
     }
     public static final class id {
         public static final int board=0x7f060000;

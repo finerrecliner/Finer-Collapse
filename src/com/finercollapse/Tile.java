@@ -44,6 +44,7 @@ public class Tile {
         y = newY;
         xOffset = 0;
         yOffset = 0;
+        animStatus = AnimStatus.IDLE;
     }
     
     /* accessors */
@@ -54,6 +55,7 @@ public class Tile {
     public int getColor() { return color; }
     public BFS getBFSStatus() { return BFSStatus; }
     public int getDistance() { return distance; }
+    public AnimStatus getAnimStatus() { return animStatus; }
     
     /* modifiers */
     public void incXOffset(int i) { xOffset += i; }
