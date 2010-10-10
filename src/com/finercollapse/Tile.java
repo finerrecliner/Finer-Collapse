@@ -71,8 +71,8 @@ public class Tile {
     
     /* returns true only if it has finished an animation */
     public boolean animateDown(int height) {
-    	if (this.animStatus == AnimStatus.DOWN &&
-    		this.color != 0) {
+//    	if (this.animStatus == AnimStatus.DOWN &&
+//    		this.color != 0) {
 	    	if (yOffset >= height) {
 	    		this.animStatus = AnimStatus.IDLE;
 	    		return true;
@@ -80,8 +80,8 @@ public class Tile {
 	    		yOffset += 4; //TODO magic number
 	    		return false;
 	    	}
-    	} 
-    	return false;
+//    	} 
+//    	return false;
     }
     
 

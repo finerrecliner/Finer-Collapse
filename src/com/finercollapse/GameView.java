@@ -1,6 +1,7 @@
 package com.finercollapse;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -57,6 +58,7 @@ public class GameView extends TileView {
     
 	private int mBFSStartTileX;
 	private int mBFSStartTileY;
+	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>();
     
     
     /**
@@ -185,8 +187,7 @@ public class GameView extends TileView {
 	        }
 	        
 	        if (mMode == RUNNING) {
-	        	//setBFSStartTile(x, y);
-	        	getTile(x,y).setColor(BLANK);
+	        	setBFSStartTile(x, y);
 	        	removeTiles();
 	        }
     	}
@@ -245,40 +246,34 @@ public class GameView extends TileView {
      * state, determining if a move should be made, updating the snake's location.
      */
     public void update() {
+    	long now;
+    	boolean isDone;
+    	
     	if (mMode == ANIMATE) {
-        	long now = System.currentTimeMillis();
+        	now = System.currentTimeMillis();
         	
     		if (now - mLastMove > mMoveDelay) {
-	        	/* for each tile on the board */
-	            for (int x = 0; x < mXTileCount; x++) {
-	            	for (int y = mYTileCount-1; y >= 0; y--) { // start from bottom, work your way up.
-	            		Tile current = getTile(x,y);
-	            		boolean isDone = false;
-	            		boolean nothingToAnimate = true;
-	            		
-	            		//check if at least one tile wants to animate
-	            		if (current.getAnimStatus() != Tile.AnimStatus.IDLE) {
-	            			nothingToAnimate = false;
-	            		}
-	            		
-	            		isDone = current.animateDown(mTileSize);
-	            		
-	            		if (isDone) {
-	            			getBelow(current).setColor(current.getColor());
-	            			current.setColor(getAbove(current).getColor());
-	            			current.resetOffset();
-	            			mMode = RUNNING;
-	            		}
-	            		
-	            		if (nothingToAnimate) {
-	            			setMode(RUNNING);
-	            		}
-	            	}
-	            } 
-	            mLastMove = now;
-	        }
-    	}
+	        	for (Tile current : mAnimating) {
 
+	        		isDone = current.animateDown(mTileSize);
+            		
+            		if (isDone) {
+            			mAnimating.remove(current); //remove current node
+            			getBelow(current).setColor(current.getColor());
+            			current.setColor(getAbove(current).getColor());
+            			current.resetOffset();
+            		}
+	        	}
+	        	
+	        	// nothing left to animate. return to RUNNING mode
+	        	if (mAnimating.isEmpty()) {
+	        		mMode = RUNNING;
+	        	}
+    		}
+    		
+    		mLastMove = now;
+    	}
+    	
         mRedrawHandler.sleep(mMoveDelay);
     }
 
@@ -425,16 +420,17 @@ public class GameView extends TileView {
     	// Do not bother looking at the last row
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
+    		//for (int y = 0; y > mYTileCount-2; y++) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				Tile current = getTile(x, y);
     				
-    				current.setAnimStatus(Tile.AnimStatus.DOWN);
-    				
+    				mAnimating.add(getTile(x,y));
     				retval = true;
     			}
     		}
     	}
-    	setMode(ANIMATE);
+    	if (retval) {
+    		setMode(ANIMATE);
+    	}
     	
     	//TODO shift columns to the right that have a BLANK column to the right of them
     	
@@ -458,7 +454,7 @@ public class GameView extends TileView {
     	//TODO check that the tile clicked was not blank!
     	
     	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-    	//breadthFirstSearch(x, y); //TODO put back in. Right now, we just blank the individual tile that was clicked
+    	breadthFirstSearch(x, y); //TODO put back in. Right now, we just blank the individual tile that was clicked
 
     	//consolidate tiles
     	//while (consolidateTiles()) {} //TODO put back in
@@ -477,7 +473,7 @@ public class GameView extends TileView {
     		Log.i(TAG, "user warning: about to lose!");
     	}
     	
-    	setMode(RUNNING);
+    	//setMode(RUNNING);
     	
     	return retval;
     }

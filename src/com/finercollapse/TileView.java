@@ -122,7 +122,7 @@ public class TileView extends View {
     /* 0,0 is at upper left */
     public Tile getAbove(Tile t) {
     	try {
-    		return getTile(t.getX(), t.getY() + 1);
+    		return getTile(t.getX(), t.getY() - 1);
     	}
     	catch (ArrayIndexOutOfBoundsException e) {
     		return null;
