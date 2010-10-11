@@ -56,8 +56,7 @@ public class GameView extends TileView {
      */
     private long mLastMove;
     
-	private int mBFSStartTileX;
-	private int mBFSStartTileY;
+
 	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>();
     
     
@@ -84,14 +83,27 @@ public class GameView extends TileView {
 
         @Override
         public void handleMessage(Message msg) {
-            GameView.this.update();
-            GameView.this.invalidate();
+        	switch (msg.what) {
+        	case 0: 
+	        	GameView.this.update();
+	            GameView.this.invalidate();
+	            break;
+        	case 1:
+        		System.out.println("postTouchEvent() called");
+        		break;
+        	}
+            
         }
 
         public void sleep(long delayMillis) {
-        	this.removeMessages(0);
+        	//this.removeMessages(0);
             sendMessageDelayed(obtainMessage(0), delayMillis);
         }
+        
+        public void postTouchEvent() {
+        	sendMessage(obtainMessage(1));
+        }
+        
     };
 
 
@@ -187,8 +199,8 @@ public class GameView extends TileView {
 	        }
 	        
 	        if (mMode == RUNNING) {
-	        	setBFSStartTile(x, y);
-	        	removeTiles();
+	        	removeTiles(x, y);
+	        	//mRedrawHandler.postTouchEvent();
 	        }
     	}
     	
@@ -253,6 +265,7 @@ public class GameView extends TileView {
         	now = System.currentTimeMillis();
         	
     		if (now - mLastMove > mMoveDelay) {
+    			//for each Tile in the Queue
 	        	for (Tile current : mAnimating) {
 
 	        		isDone = current.animateDown(mTileSize);
@@ -411,53 +424,48 @@ public class GameView extends TileView {
     }
     
       
-    
+    //return true if animation needs to be done
     private boolean consolidateTiles() {
     	boolean retval = false;
     	
-    	// drop tiles one space that have a BLANK below them
-    	// loop through rows from bottom to top
-    	// Do not bother looking at the last row
-    	for (int x = 0; x < mXTileCount; x++) {
-    		for (int y = mYTileCount-2; y >= 0; y--) {
-    		//for (int y = 0; y > mYTileCount-2; y++) {
-    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				
-    				mAnimating.add(getTile(x,y));
-    				retval = true;
-    			}
-    		}
-    	}
+
+	    	// drop tiles one space that have a BLANK below them
+	    	// loop through rows from bottom to top
+	    	// Do not bother looking at the last row
+	    	for (int x = 0; x < mXTileCount; x++) {
+	    		for (int y = mYTileCount-2; y >= 0; y--) {
+	    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
+	    				
+	    				mAnimating.add(getTile(x,y));
+	    				retval = true;
+	    			}
+	    		}
+	    	}
+
+    	// if at least one tile needs to be dropped
     	if (retval) {
     		setMode(ANIMATE);
     	}
+//    	} else {
+//    		//nothing left to animate
+//    		setMode(RUNNING);
+//    	}
     	
     	//TODO shift columns to the right that have a BLANK column to the right of them
     	
-    	//setMode(RUNNING);
     	return retval;
     }
     
 
-    
-    private void setBFSStartTile(int x, int y) {
-		mBFSStartTileX = x;
-		mBFSStartTileY = y;
-	}
-
-	private boolean removeTiles(){
-		
-		int x = mBFSStartTileX; //TODO do we really need to copy?
-		int y = mBFSStartTileY;
+	private boolean removeTiles(int x, int y){
 		boolean retval = true;
 		
     	//TODO check that the tile clicked was not blank!
     	
     	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-    	breadthFirstSearch(x, y); //TODO put back in. Right now, we just blank the individual tile that was clicked
-
+    	breadthFirstSearch(x, y); 
+    	
     	//consolidate tiles
-    	//while (consolidateTiles()) {} //TODO put back in
 		consolidateTiles(); //Should make a tile drop one space
     	
     	//push up a new row of tiles
