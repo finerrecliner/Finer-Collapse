@@ -5,10 +5,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -83,16 +83,8 @@ public class GameView extends TileView {
 
         @Override
         public void handleMessage(Message msg) {
-        	switch (msg.what) {
-        	case 0: 
 	        	GameView.this.update();
-	            GameView.this.invalidate();
-	            break;
-        	case 1:
-        		System.out.println("postTouchEvent() called");
-        		break;
-        	}
-            
+	            GameView.this.invalidate();        
         }
 
         public void sleep(long delayMillis) {
@@ -100,11 +92,36 @@ public class GameView extends TileView {
             sendMessageDelayed(obtainMessage(0), delayMillis);
         }
         
-        public void postTouchEvent() {
-        	sendMessage(obtainMessage(1));
-        }
-        
     };
+    
+    private class postUserClick extends AsyncTask<Void, Void, Boolean> {
+ 		
+		protected Boolean doInBackground(Void... params) {
+ 			boolean retval = false;
+ 			
+ 	    	//consolidate tiles
+ 			consolidateTiles();
+ 			
+ 	    	//push up a new row of tiles
+ 	    	//newRow();
+ 	    	
+ 	    	//check if any tiles are filled in top row
+ 	    	if (rowHasTile(0)) {        	//TODO magic number
+ 	    		setMode(LOSE);
+ 	    		return false;
+ 	    	}
+ 	    	//TODO check if any tiles are filled in 2nd row --> warning
+ 	    	if (rowHasTile(1)) {        	//TODO magic number
+ 	    		Log.i(TAG, "user warning: about to lose!");
+ 	    	}
+ 	    	 	    	
+ 	    	return retval;
+		}
+
+    }
+    
+    
+    
 
 
     /**
@@ -199,8 +216,12 @@ public class GameView extends TileView {
 	        }
 	        
 	        if (mMode == RUNNING) {
-	        	removeTiles(x, y);
-	        	//mRedrawHandler.postTouchEvent();
+	        	//check that the tile clicked was not blank!
+	        	if (getTile(x,y).getColor() != BLANK) {
+		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
+		        	breadthFirstSearch(x, y); 
+		        	new postUserClick().execute(); 
+	        	}
 	        }
     	}
     	
@@ -444,8 +465,7 @@ public class GameView extends TileView {
 
     	// if at least one tile needs to be dropped
     	if (retval) {
-    		setMode(ANIMATE);
-    	}
+    		setMode(ANIMATE); }
 //    	} else {
 //    		//nothing left to animate
 //    		setMode(RUNNING);
@@ -456,34 +476,5 @@ public class GameView extends TileView {
     	return retval;
     }
     
-
-	private boolean removeTiles(int x, int y){
-		boolean retval = true;
-		
-    	//TODO check that the tile clicked was not blank!
-    	
-    	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-    	breadthFirstSearch(x, y); 
-    	
-    	//consolidate tiles
-		consolidateTiles(); //Should make a tile drop one space
-    	
-    	//push up a new row of tiles
-    	//newRow();
-    	
-    	//check if any tiles are filled in top row
-    	if (rowHasTile(0)) {        	//TODO magic number
-    		setMode(LOSE);
-    		return false;
-    	}
-    	//TODO check if any tiles are filled in 2nd row --> warning
-    	if (rowHasTile(1)) {        	//TODO magic number
-    		Log.i(TAG, "user warning: about to lose!");
-    	}
-    	
-    	//setMode(RUNNING);
-    	
-    	return retval;
-    }
         
 }
