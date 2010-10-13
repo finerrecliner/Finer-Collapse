@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -16,8 +17,7 @@ import android.view.View;
 import android.widget.TextView;
 
 /**
- * SnakeView: implementation of a simple game of Snake
- * 
+ * GameView: a simple puzzle game
  * 
  */
 public class GameView extends TileView {
@@ -98,29 +98,54 @@ public class GameView extends TileView {
  		
 		protected Boolean doInBackground(Void... params) {
  			boolean retval = false;
+ 			boolean isDone;
  			
  	    	//consolidate tiles
- 			consolidateTiles();
+ 			retval = consolidateTiles();
  			
+ 			while (!mAnimating.isEmpty()) {
+ 				//for each Tile in the Queue
+	        	for (Tile current : mAnimating) {
+
+	        		isDone = current.animateDown(mTileSize);
+            		
+            		if (isDone) {
+            			mAnimating.remove(current); //remove current node
+            			getBelow(current).setColor(current.getColor());
+            			current.setColor(getAbove(current).getColor());
+            			current.resetOffset();
+            		}
+            		
+            		thisinvalidate();
+	        	}
+	        	
+	        	SystemClock.sleep(mMoveDelay);
+    		}
+ 			
+ 	    	return retval;
+		}
+		
+		protected void onPostExecute(Boolean b) {
  	    	//push up a new row of tiles
  	    	//newRow();
  	    	
  	    	//check if any tiles are filled in top row
- 	    	if (rowHasTile(0)) {        	//TODO magic number
+ 	    	if (rowHasTile(0)) {	//TODO magic number
  	    		setMode(LOSE);
- 	    		return false;
+ 	    		return;
  	    	}
  	    	//TODO check if any tiles are filled in 2nd row --> warning
  	    	if (rowHasTile(1)) {        	//TODO magic number
  	    		Log.i(TAG, "user warning: about to lose!");
  	    	}
- 	    	 	    	
- 	    	return retval;
+ 	    	 	 
 		}
 
     }
     
-    
+    private void thisinvalidate() {
+    	this.invalidate();
+    }
     
 
 
@@ -179,7 +204,7 @@ public class GameView extends TileView {
                  */
                 initNewGame();
                 setMode(RUNNING);
-                update();
+                //update();
                 return (true);
             }
             
@@ -251,7 +276,7 @@ public class GameView extends TileView {
 
         if (newMode == RUNNING && oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
-            update();
+            //update();
             return;
         }
 
@@ -302,13 +327,14 @@ public class GameView extends TileView {
 	        	// nothing left to animate. return to RUNNING mode
 	        	if (mAnimating.isEmpty()) {
 	        		mMode = RUNNING;
+	        		//TODO set off another async queue!
+	        	} else {
+	                mRedrawHandler.sleep(mMoveDelay);	        		
 	        	}
     		}
-    		
     		mLastMove = now;
     	}
     	
-        mRedrawHandler.sleep(mMoveDelay);
     }
 
     /**
