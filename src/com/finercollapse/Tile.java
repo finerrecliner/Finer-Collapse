@@ -13,8 +13,6 @@ public class Tile {
     private int xOffset; //used for animation
     private int yOffset; //used for animation
 	private int color;
-	private int distance;
-    private Tile pred; //predecessor
     private BFS BFSStatus;
 
   
@@ -48,7 +46,6 @@ public class Tile {
     public int getXOffset() { return xOffset; }
     public int getYOffset() { return yOffset; }
     public int getColor() { return color; }
-    public int getDistance() { return distance; }
     public BFS getBFSStatus() { return BFSStatus; }
 
     
@@ -57,8 +54,6 @@ public class Tile {
     public void incYOffset(int i) { yOffset += i; }
     public void setColor(int c) { color = c; }
     public void setBFSStatus(BFS s) { BFSStatus = s; }
-    public void setDistance(int d) { distance = d; }
-    public void setPred(Tile p) { pred = p; }
     public void resetOffset() { xOffset = yOffset = 0; }
     
     

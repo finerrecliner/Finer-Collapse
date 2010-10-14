@@ -5,9 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -49,13 +47,7 @@ public class GameView extends TileView {
      * captured.
      */
     private long score = 0;
-    private long mMoveDelay = 20;
-    /**
-     * mLastMove: tracks the absolute time when the snake last moved, and is used
-     * to determine if a move should be made based on mMoveDelay.
-     */
-    private long mLastMove;
-    
+    private long mMoveDelay = 20;    
 
 	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>();
     
@@ -82,11 +74,9 @@ public class GameView extends TileView {
     class Animator extends Thread {
     	public void run() {
     		boolean isDone;
-    		long now;
-    		
+    		boolean more;
     		
     		while (true) {
-    			now = System.currentTimeMillis();
     			if (!mAnimating.isEmpty()) {
 	 				//for each Tile in the Queue
 		        	for (Tile current : mAnimating) {
@@ -94,23 +84,26 @@ public class GameView extends TileView {
 		        		isDone = current.animateDown(mTileSize);
 	            		
 	            		if (isDone) {
-	            			mAnimating.remove(current); //remove current node
+	            			mAnimating.remove(current);
 	            			getBelow(current).setColor(current.getColor());
 	            			current.setColor(getAbove(current).getColor());
 	            			current.resetOffset();
-	            			//TODO send message 
 	            		}
 		        	}
-		        	mHandler.post(mRedraw);
-		        	System.out.println("animate: " + (System.currentTimeMillis() - now));
 		        	
-		        	now = System.currentTimeMillis();
-		        	SystemClock.sleep(mMoveDelay);
-		        	System.out.println("sleep: " + (System.currentTimeMillis() - now));
-    			} else {
-    				consolidateTiles();
-    				System.out.println("consolidate: " + (System.currentTimeMillis() - now));
+		        	//ran out of stuff to animate
+		        	if (mAnimating.isEmpty()) {
+		        		more = findTilesToAnimate();
+		        		
+		        		//if there really isn't anything else to animate, do the post animation stuff
+		        		if (!more) {
+		        			mHandler.post(mPostUserClick);
+		        		}
+		        	}
+		        	
     			}
+	        	mHandler.post(mRedraw);    
+	        	SystemClock.sleep(mMoveDelay);
     		}
     	}
     }
@@ -125,7 +118,8 @@ public class GameView extends TileView {
     final Runnable mPostUserClick = new Runnable() {
     	public void run() {
  	    	//push up a new row of tiles
- 	    	//newRow();
+ 	    	newRow();
+ 	    	GameView.this.invalidate();
  	    	
  	    	//check if any tiles are filled in top row
  	    	if (rowHasTile(0)) {	//TODO magic number
@@ -222,6 +216,7 @@ public class GameView extends TileView {
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
+    	boolean willAnim;
     	
     	if (MotionEvent.ACTION_DOWN == action) {
     	
@@ -237,9 +232,13 @@ public class GameView extends TileView {
 	        	//check that the tile clicked was not blank!
 	        	if (getTile(x,y).getColor() != BLANK) {
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-		        	breadthFirstSearch(x, y); 
-		        	//consolidateTiles();
-		        	//new postUserClick().execute(); 
+		        	breadthFirstSearch(x, y);
+		        	willAnim = findTilesToAnimate();
+		        	
+		        	// if nothing to animate from this click, don't forget to do this stuff anyways!
+		        	if (!willAnim) {
+		        		mHandler.post(mPostUserClick);
+		        	}
 	        	}
 	        }
     	}
@@ -294,44 +293,6 @@ public class GameView extends TileView {
 
 
     /**
-     * Handles the basic update loop, checking to see if we are in the running
-     * state, determining if a move should be made, updating the snake's location.
-     */
-    public void update() {
-    	long now;
-    	boolean isDone;
-    	
-    	if (mMode == ANIMATE) {
-        	now = System.currentTimeMillis();
-        	
-    		if (now - mLastMove > mMoveDelay) {
-    			//for each Tile in the Queue
-	        	for (Tile current : mAnimating) {
-
-	        		isDone = current.animateDown(mTileSize);
-            		
-            		if (isDone) {
-            			mAnimating.remove(current); //remove current node
-            			getBelow(current).setColor(current.getColor());
-            			current.setColor(getAbove(current).getColor());
-            			current.resetOffset();
-            		}
-	        	}
-	        	
-	        	// nothing left to animate. return to RUNNING mode
-	        	if (mAnimating.isEmpty()) {
-	        		mMode = RUNNING;
-	        		//TODO set off another async queue!
-	        	} else {
-	                //mRedrawHandler.sleep(mMoveDelay);	        		
-	        	}
-    		}
-    		mLastMove = now;
-    	}
-    	
-    }
-
-    /**
      * breadth-first-search algorithm
      * @param sourceX
      * @param sourceY
@@ -347,12 +308,9 @@ public class GameView extends TileView {
     				Tile current = getTile(x, y);
     				
     				current.setBFSStatus(Tile.BFS.UNDISCOVERED);
-    				current.setDistance(-1);
-    				current.setPred(null);
     		}
     	}
     	source.setBFSStatus(Tile.BFS.DISCOVERED);
-    	source.setDistance(0);
     	
     	queue.add(source);
     	
@@ -370,8 +328,6 @@ public class GameView extends TileView {
     				a.getBFSStatus() == Tile.BFS.UNDISCOVERED &&
     				a.getColor() == current.getColor()) {
 	    				a.setBFSStatus(Tile.BFS.DISCOVERED);
-	    				a.setDistance(current.getDistance() + 1); //TODO i don't think we care about distance
-	    				a.setPred(current); //TODO or this
 	    				queue.add(a);
     			}
     		}
@@ -440,58 +396,24 @@ public class GameView extends TileView {
     }
     
     
-    private boolean consolidateTilesStatic() {
+      
+    //return true if animation needs to be done
+    private boolean findTilesToAnimate() {
     	boolean retval = false;
-    	
-    	// drop tiles that have a BLANK below them
+	
+    	// drop tiles one space that have a BLANK below them
     	// loop through rows from bottom to top
-    	// Do not bother looking at the last row
+    	// Do not bother looking at the bottom row, as nothing can be "below" it
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				Tile current = getTile(x, y);
-    				Tile below = getBelow(current);
-    				below.setColor(current.getColor());
-    				current.setColor(BLANK);
     				
+    				mAnimating.add(getTile(x,y));
     				retval = true;
     			}
     		}
     	}
     	
-    	//TODO shift columns to the right that have a BLANK column to the right of them
-    	
-    	return retval;
-    }
-    
-      
-    //return true if animation needs to be done
-    private boolean consolidateTiles() {
-    	boolean retval = false;
-    	
-
-	    	// drop tiles one space that have a BLANK below them
-	    	// loop through rows from bottom to top
-	    	// Do not bother looking at the last row
-	    	for (int x = 0; x < mXTileCount; x++) {
-	    		for (int y = mYTileCount-2; y >= 0; y--) {
-	    			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-	    				
-	    				mAnimating.add(getTile(x,y));
-	    				retval = true;
-	    			}
-	    		}
-	    	}
-
-    	// if at least one tile needs to be dropped
-//    	if (retval) {
-//    		setMode(ANIMATE); }
-//    	} else {
-//    		//nothing left to animate
-//    		setMode(RUNNING);
-//    	}
-    	
-    	//TODO shift columns to the right that have a BLANK column to the right of them
     	
     	return retval;
     }
