@@ -16,12 +16,7 @@ public class Tile {
 	private int distance;
     private Tile pred; //predecessor
     private BFS BFSStatus;
-	private AnimStatus animStatus;
 
-	public enum AnimStatus {
-		IDLE,
-		DOWN,
-	}
   
     public enum BFS {
       	UNDISCOVERED,
@@ -44,7 +39,7 @@ public class Tile {
         y = newY;
         xOffset = 0;
         yOffset = 0;
-        animStatus = AnimStatus.IDLE;
+
     }
     
     /* accessors */
@@ -53,16 +48,15 @@ public class Tile {
     public int getXOffset() { return xOffset; }
     public int getYOffset() { return yOffset; }
     public int getColor() { return color; }
-    public BFS getBFSStatus() { return BFSStatus; }
     public int getDistance() { return distance; }
-    public AnimStatus getAnimStatus() { return animStatus; }
+    public BFS getBFSStatus() { return BFSStatus; }
+
     
     /* modifiers */
     public void incXOffset(int i) { xOffset += i; }
     public void incYOffset(int i) { yOffset += i; }
     public void setColor(int c) { color = c; }
     public void setBFSStatus(BFS s) { BFSStatus = s; }
-    public void setAnimStatus(AnimStatus s) { animStatus = s; }
     public void setDistance(int d) { distance = d; }
     public void setPred(Tile p) { pred = p; }
     public void resetOffset() { xOffset = yOffset = 0; }
@@ -71,17 +65,14 @@ public class Tile {
     
     /* returns true only if it has finished an animation */
     public boolean animateDown(int height) {
-//    	if (this.animStatus == AnimStatus.DOWN &&
-//    		this.color != 0) {
-	    	if (yOffset >= height) {
-	    		this.animStatus = AnimStatus.IDLE;
+    		int offset = 4; //TODO magic number
+
+	    	if (yOffset + offset >= height) {
 	    		return true;
 	    	} else {
-	    		yOffset += 4; //TODO magic number
+	    		yOffset += offset; 
 	    		return false;
 	    	}
-//    	} 
-//    	return false;
     }
     
 

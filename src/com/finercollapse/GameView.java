@@ -49,7 +49,7 @@ public class GameView extends TileView {
      * captured.
      */
     private long score = 0;
-    private long mMoveDelay = 50;
+    private long mMoveDelay = 20;
     /**
      * mLastMove: tracks the absolute time when the snake last moved, and is used
      * to determine if a move should be made based on mMoveDelay.
@@ -77,55 +77,53 @@ public class GameView extends TileView {
      * set ourselves as a target and we can use the sleep()
      * function to cause an update/invalidate to occur at a later date.
      */
-    private RefreshHandler mRedrawHandler = new RefreshHandler();
-
-    class RefreshHandler extends Handler {
-
-        @Override
-        public void handleMessage(Message msg) {
-	        	GameView.this.update();
-	            GameView.this.invalidate();        
-        }
-
-        public void sleep(long delayMillis) {
-        	this.removeMessages(0);
-            sendMessageDelayed(obtainMessage(0), delayMillis);
-        }
-        
+    private Handler mHandler = new Handler();
+    
+    class Animator extends Thread {
+    	public void run() {
+    		boolean isDone;
+    		long now;
+    		
+    		
+    		while (true) {
+    			now = System.currentTimeMillis();
+    			if (!mAnimating.isEmpty()) {
+	 				//for each Tile in the Queue
+		        	for (Tile current : mAnimating) {
+	
+		        		isDone = current.animateDown(mTileSize);
+	            		
+	            		if (isDone) {
+	            			mAnimating.remove(current); //remove current node
+	            			getBelow(current).setColor(current.getColor());
+	            			current.setColor(getAbove(current).getColor());
+	            			current.resetOffset();
+	            			//TODO send message 
+	            		}
+		        	}
+		        	mHandler.post(mRedraw);
+		        	System.out.println("animate: " + (System.currentTimeMillis() - now));
+		        	
+		        	now = System.currentTimeMillis();
+		        	SystemClock.sleep(mMoveDelay);
+		        	System.out.println("sleep: " + (System.currentTimeMillis() - now));
+    			} else {
+    				consolidateTiles();
+    				System.out.println("consolidate: " + (System.currentTimeMillis() - now));
+    			}
+    		}
+    	}
+    }
+    
+    final Runnable mRedraw = new Runnable() {
+    	public void run() {
+    		GameView.this.invalidate();
+    	}
     };
     
-    private class postUserClick extends AsyncTask<Void, Void, Boolean> {
- 		
-		protected Boolean doInBackground(Void... params) {
- 			boolean retval = false;
- 			boolean isDone;
- 			
- 	    	//consolidate tiles
- 			retval = consolidateTiles();
- 			
- 			while (!mAnimating.isEmpty()) {
- 				//for each Tile in the Queue
-	        	for (Tile current : mAnimating) {
-
-	        		isDone = current.animateDown(mTileSize);
-            		
-            		if (isDone) {
-            			mAnimating.remove(current); //remove current node
-            			getBelow(current).setColor(current.getColor());
-            			current.setColor(getAbove(current).getColor());
-            			current.resetOffset();
-            		}
-            		
-            		thisinvalidate();
-	        	}
-	        	
-	        	SystemClock.sleep(mMoveDelay);
-    		}
- 			
- 	    	return retval;
-		}
-		
-		protected void onPostExecute(Boolean b) {
+    
+    final Runnable mPostUserClick = new Runnable() {
+    	public void run() {
  	    	//push up a new row of tiles
  	    	//newRow();
  	    	
@@ -138,19 +136,13 @@ public class GameView extends TileView {
  	    	if (rowHasTile(1)) {        	//TODO magic number
  	    		Log.i(TAG, "user warning: about to lose!");
  	    	}
- 	    	 	 
-		}
-
-    }
-    
-    private void thisinvalidate() {
-    	this.invalidate();
-    }
-    
+    	}
+    };
+        
 
 
     /**
-     * Constructs a SnakeView based on inflation from XML
+     * Constructs a GameView based on inflation from XML
      * 
      * @param context
      * @param attrs
@@ -170,6 +162,9 @@ public class GameView extends TileView {
         loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
         loadTile(GREEN_STAR, r.getDrawable(R.drawable.greenstar));
         loadTile(BLANK, r.getDrawable(R.drawable.blankstar));
+        
+        Animator a = new Animator();
+        a.start();
     }
     
 
@@ -180,8 +175,6 @@ public class GameView extends TileView {
     		newRow();
     	}
     	
-    	
-        mMoveDelay = 600;
         score = 0;
     }
 
@@ -245,7 +238,8 @@ public class GameView extends TileView {
 	        	if (getTile(x,y).getColor() != BLANK) {
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
 		        	breadthFirstSearch(x, y); 
-		        	new postUserClick().execute(); 
+		        	//consolidateTiles();
+		        	//new postUserClick().execute(); 
 	        	}
 	        }
     	}
@@ -329,7 +323,7 @@ public class GameView extends TileView {
 	        		mMode = RUNNING;
 	        		//TODO set off another async queue!
 	        	} else {
-	                mRedrawHandler.sleep(mMoveDelay);	        		
+	                //mRedrawHandler.sleep(mMoveDelay);	        		
 	        	}
     		}
     		mLastMove = now;
@@ -490,8 +484,8 @@ public class GameView extends TileView {
 	    	}
 
     	// if at least one tile needs to be dropped
-    	if (retval) {
-    		setMode(ANIMATE); }
+//    	if (retval) {
+//    		setMode(ANIMATE); }
 //    	} else {
 //    		//nothing left to animate
 //    		setMode(RUNNING);
