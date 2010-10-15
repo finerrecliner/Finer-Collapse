@@ -13,23 +13,31 @@ import android.view.View;
 
 
 /**
- * TileView: a View-variant designed for handling arrays of "icons" or other
- * drawables.
+ * TileView: a View-variant designed for handling arrays of drawables.
  * 
  */
 public class TileView extends View {
 		
+    /******************* Attributes **********************/
+	
+	private static final String TAG = "TileView";
+	
     /**
-     * Parameters controlling the size of the tiles and their range within view.
-     * Width/Height are in pixels, and Drawables will be scaled to fit to these
-     * dimensions. X/Y Tile Counts are the number of tiles that will be drawn.
+     * Size of the Drawable. Width and Height will be equal.
+     * Width/Height are measured in pixels, and Drawables will be 
+     * scaled to fit to these dimensions.
      */
-
     protected static int mTileSize;
 
+    /**
+     * Number of Tiles to Draw horizontally & vertically in the View
+     */
     protected static int mXTileCount;
     protected static int mYTileCount;
 
+    /**
+     * Offset for entire board
+     */
     protected static int mXOffset;
     protected static int mYOffset;
 
@@ -41,14 +49,27 @@ public class TileView extends View {
     private Bitmap[] mTileArray; 
 
     /**
-     * A two-dimensional array of integers in which the number represents the
-     * index of the tile that should be drawn at that locations
+     * A two-dimensional array of Tiles that represents the
+     * game board of which tiles should be drawn at those locations
      */
     protected Tile[][] mTileGrid;
 
+    /**
+     * Used to draw Bitmaps
+     */
     private final Paint mPaint = new Paint();
     
-    /* constructor */
+    /******************* End Attributes **********************/
+    
+    
+    /********************* Methods ***************************/
+    
+    
+    /**
+     * Constructor
+     * @param context
+     * @param attrs
+     */
     public TileView(Context context, AttributeSet attrs) {
     	super (context, attrs);
     	    	
@@ -57,24 +78,34 @@ public class TileView extends View {
         a.recycle();
     }
  
-    
-    
     /**
-     * Rests the internal array of Bitmaps used for drawing tiles, and
-     * sets the maximum index of tiles to be inserted
+     * Resets the internal array of Bitmaps used for drawing tiles
      * 
-     * @param tilecount
+     * @param tilecount max number of tiles to be inserted
      */
     public void resetTiles(int tilecount) {
     	mTileArray = new Bitmap[tilecount];
     }
     
-    public Tile getTile(int x, int y) {
-    	//TODO add try catch out of bounds exception
-    	return mTileGrid[x][y];
+    /**
+     * Find a Tile on the board with given coordinates
+     * @param x X position
+     * @param y Y position
+     * @return Tile found at specified location
+     */
+    public Tile findTile(int x, int y) {
+    	try {
+    		return mTileGrid[x][y];
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		Log.w(TAG + ":findTile(" + x + "," + y + ")", e.toString());
+    		return null;
+    	}
     }
     
-
+    /* (non-Javadoc)
+     * @see android.view.View#onSizeChanged(int, int, int, int)
+     */
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         mXTileCount = (int) Math.floor(w / mTileSize);
@@ -89,13 +120,13 @@ public class TileView extends View {
         
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
-        		mTileGrid[x][y] = new Tile(0, x, y); //TODO: can use constructor for just x,y
+        		mTileGrid[x][y] = new Tile(0, x, y);
         	}
         }
         
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
-        		t = getTile(x,y);
+        		t = findTile(x,y);
         		t.setAdjacents(getAbove(t), getBelow(t), getLeft(t), getRight(t));
         	}
         }
@@ -105,21 +136,21 @@ public class TileView extends View {
      * Function to set the specified Drawable as the tile for a particular
      * integer key.
      * 
-     * @param key
-     * @param tile
+     * @param key integer to associate with a Drawable
+     * @param img Drawable to associate with key value
      */
-    public void loadTile(int key, Drawable tile) {
+    public void loadTile(int key, Drawable img) {
         Bitmap bitmap = Bitmap.createBitmap(mTileSize, mTileSize, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        tile.setBounds(0, 0, mTileSize, mTileSize);
-        tile.draw(canvas);
+        img.setBounds(0, 0, mTileSize, mTileSize);
+        img.draw(canvas);
         
         mTileArray[key] = bitmap;
     }
 
+
     /**
-     * Resets all tiles to 0 (empty)
-     * 
+     * Sets all Tiles on the board to BLANK
      */
     public void clearAllTiles() {
         for (int x = 0; x < mXTileCount; x++) {
@@ -132,7 +163,7 @@ public class TileView extends View {
     /* 0,0 is at upper left */
     public Tile getAbove(Tile t) {
     	try {
-    		return getTile(t.getX(), t.getY() - 1);
+    		return findTile(t.getX(), t.getY() - 1);
     	}
     	catch (ArrayIndexOutOfBoundsException e) {
     		return null;
@@ -141,7 +172,7 @@ public class TileView extends View {
     
     public Tile getBelow(Tile t, int i) {
     	try {
-    		return getTile(t.getX(), t.getY() + i);
+    		return findTile(t.getX(), t.getY() + i);
     	}
     	catch (ArrayIndexOutOfBoundsException e) {
     		return null;
@@ -154,7 +185,7 @@ public class TileView extends View {
     
     public Tile getRight(Tile t) {
     	try {
-    		return getTile(t.getX() + 1, t.getY());
+    		return findTile(t.getX() + 1, t.getY());
     	}
     	catch (ArrayIndexOutOfBoundsException e) {
     		return null;
@@ -163,14 +194,18 @@ public class TileView extends View {
 
     public Tile getLeft(Tile t) {
     	try {
-    		return getTile(t.getX() - 1, t.getY());
+    		return findTile(t.getX() - 1, t.getY());
     	}
     	catch (ArrayIndexOutOfBoundsException e) {
     		return null;
     	}
     }
 
-    public void printAll() {
+    /**
+     * Debug method to print a string representation of the current
+     * game board to the console
+     */
+    public void printBoard() {
     	String buffer = ""; 
     	
     	for (int y = 0; y < mYTileCount; y++) {
@@ -184,6 +219,9 @@ public class TileView extends View {
     }
     
 
+    /* (non-Javadoc)
+     * @see android.view.View#onDraw(android.graphics.Canvas)
+     */
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -200,7 +238,9 @@ public class TileView extends View {
 
     }   
     
-    //TODO documentation
+    /* (non-Javadoc)
+     * @see android.view.View#onTouchEvent(android.view.MotionEvent)
+     */
     @Override
 	public boolean onTouchEvent(MotionEvent event) {        
 		return super.onTouchEvent(event);

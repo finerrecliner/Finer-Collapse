@@ -231,7 +231,7 @@ public class GameView extends TileView {
         }
         
         if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-        	this.printAll();
+        	this.printBoard();
         }
 
         return super.onKeyDown(keyCode, msg);
@@ -255,7 +255,7 @@ public class GameView extends TileView {
 	        
 	        if (mMode == RUNNING) {
 	        	//check that the tile clicked was not blank!
-	        	if (getTile(x,y).getColor() != BLANK) {
+	        	if (findTile(x,y).getColor() != BLANK) {
 	        		setMode(DROP);
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
 		        	breadthFirstSearch(x, y);
@@ -325,13 +325,13 @@ public class GameView extends TileView {
      */
     private void breadthFirstSearch(int sourceX, int sourceY) {
     	Queue<Tile> queue = new LinkedList<Tile>();
-    	Tile source = getTile(sourceX, sourceY);
+    	Tile source = findTile(sourceX, sourceY);
     	Tile[] adj = new Tile[4];
     	
     	/* initialize */
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
-    				Tile current = getTile(x, y);
+    				Tile current = findTile(x, y);
     				
     				current.setBFSStatus(Tile.BFS.UNDISCOVERED);
     		}
@@ -372,7 +372,7 @@ public class GameView extends TileView {
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
         		int color = (RNG.nextInt(3)) + 1;
-        		getTile(x, y).setColor(color);
+        		findTile(x, y).setColor(color);
         	}
         }
     }
@@ -382,15 +382,15 @@ public class GameView extends TileView {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
-    			Tile tileBelow = getTile(x, y+1);
-    			getTile(x, y).setColor(tileBelow.getColor());
+    			Tile tileBelow = findTile(x, y+1);
+    			findTile(x, y).setColor(tileBelow.getColor());
     		}
     	}
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
     		int color = (RNG.nextInt(3) + 1);  //TODO magic number
-    		getTile(x, mYTileCount - 1).setColor(color);
+    		findTile(x, mYTileCount - 1).setColor(color);
     	}
     }
     
@@ -398,7 +398,7 @@ public class GameView extends TileView {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
-    			Tile current = getTile(x,y);
+    			Tile current = findTile(x,y);
     			Tile below = getBelow(current);
     			current.setColor(below.getColor());
     		}
@@ -407,12 +407,12 @@ public class GameView extends TileView {
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
     		int color = (RNG.nextInt(3) + 1);  //TODO magic number
-    		getTile(x, mYTileCount - 1).setColor(color);
+    		findTile(x, mYTileCount - 1).setColor(color);
     	}
     	
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
-    			Tile current = getTile(x,y);
+    			Tile current = findTile(x,y);
     			if (current.getColor() != BLANK) {
 	    			current.incYOffset(mTileSize);
 	    			current.setAnimDirection(AnimDirection.UP);
@@ -425,7 +425,7 @@ public class GameView extends TileView {
     }
     
     private boolean tileIsBlank(int x, int y) {
-    	return (getTile(x, y).getColor() == BLANK);
+    	return (findTile(x, y).getColor() == BLANK);
     }
 
     //TODO documentation
@@ -463,8 +463,8 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				mAnimating.add(getTile(x,y));
-    				getTile(x,y).setAnimDirection(AnimDirection.DOWN);
+    				mAnimating.add(findTile(x,y));
+    				findTile(x,y).setAnimDirection(AnimDirection.DOWN);
     				retval = true;
     			}
     		}
