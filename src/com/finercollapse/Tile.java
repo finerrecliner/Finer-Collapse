@@ -14,12 +14,25 @@ public class Tile {
     private int yOffset; //used for animation
 	private int color;
     private BFS BFSStatus;
+    private AnimDirection animDirection;
+    private Tile up;
+    private Tile down;
+    private Tile left;
+    private Tile right;
 
   
     public enum BFS {
       	UNDISCOVERED,
       	DISCOVERED,
       	HANDLED,
+    }
+    
+    public enum AnimDirection {
+    	NONE,
+    	UP,
+    	DOWN,
+    	LEFT,
+    	RIGHT,
     }
 
     /* constructors */
@@ -55,14 +68,55 @@ public class Tile {
     public void setColor(int c) { color = c; }
     public void setBFSStatus(BFS s) { BFSStatus = s; }
     public void resetOffset() { xOffset = yOffset = 0; }
+    public void setAnimDirection(AnimDirection ad) { animDirection = ad; }
+    public void setAdjacents(Tile u, Tile d, Tile l, Tile r) { up = u; down = d; left = l; right = r; }
     
     
+    public boolean animate(int distance) {
+    	switch (animDirection) {
+    	case UP:
+    		return animateUp(distance);
+    	case DOWN: 
+    		return animateDown(distance);
+    	case NONE: //fall through
+    	default: 
+    		return false;
+    	
+    	}
+    }
+    
+    
+    /* returns true only if it has finished an animation */
+    public boolean animateUp(int height) {
+    		int offset = 4; //TODO magic number
+
+    		/* animation is complete */
+	    	if (yOffset - offset <= 0) {
+	    		animDirection = AnimDirection.NONE;
+	    		up.setColor(color);
+	    		if (down != null) {
+	    			color = down.getColor();
+	    		} else {
+	    			color = 0;
+	    		}
+	    		resetOffset();
+	    		return true;
+	    	} else {
+	    		yOffset -= offset; 
+	    		return false;
+	    	}
+    }    
     
     /* returns true only if it has finished an animation */
     public boolean animateDown(int height) {
     		int offset = 4; //TODO magic number
 
+    		/* animation is complete */
 	    	if (yOffset + offset >= height) {
+	    		animDirection = AnimDirection.NONE;
+	    		down.setColor(color);
+	    		color = up.getColor(); //TODO see up()
+	    		resetOffset();
 	    		return true;
 	    	} else {
 	    		yOffset += offset; 

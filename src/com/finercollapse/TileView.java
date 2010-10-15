@@ -84,9 +84,19 @@ public class TileView extends View {
         mYOffset = ((h - (mTileSize * mYTileCount)) / 2);
 
         mTileGrid = new Tile[mXTileCount][mYTileCount];
+        
+        Tile t;
+        
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
         		mTileGrid[x][y] = new Tile(0, x, y); //TODO: can use constructor for just x,y
+        	}
+        }
+        
+        for (int x = 0; x < mXTileCount; x++) {
+        	for (int y = 0; y < mYTileCount; y++) {
+        		t = getTile(x,y);
+        		t.setAdjacents(getAbove(t), getBelow(t), getLeft(t), getRight(t));
         	}
         }
     }

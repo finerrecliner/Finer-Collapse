@@ -3,6 +3,8 @@ package com.finercollapse;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.finercollapse.Tile.AnimDirection;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Handler;
@@ -32,6 +34,8 @@ public class GameView extends TileView {
     public static final int RUNNING = 2;
     public static final int LOSE = 3;
     public static final int ANIMATE = 4;
+    public static final int DROP = 5;
+    public static final int NEW_ROW = 6;
 
     /**
      * Labels for the drawables that will be loaded into the TileView class
@@ -47,7 +51,7 @@ public class GameView extends TileView {
      * captured.
      */
     private long score = 0;
-    private long mMoveDelay = 20;    
+    private long mMoveDelay = 40;    
 
 	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>();
     
@@ -72,33 +76,48 @@ public class GameView extends TileView {
     private Handler mHandler = new Handler();
     
     class Animator extends Thread {
+    	
+    	private void doNext() {
+    		switch (mMode) {
+    		case DROP:
+    			drop();
+    			break;
+    		case NEW_ROW:
+    			mHandler.post(mPostUserClick);
+    			break;
+    		default:
+    			Log.w(TAG, "Invalid Mode of GameView");
+    		}
+    	} 	
+    	
+    	
+    	public void drop() {
+    		boolean more = findTilesToAnimate();
+    		
+    		//if there isn't anything else to animate, do the post animation stuff
+    		if (!more) {
+    			mHandler.post(mNewRow);
+    		}
+    	}
+    	
     	public void run() {
     		boolean isDone;
-    		boolean more;
     		
     		while (true) {
     			if (!mAnimating.isEmpty()) {
 	 				//for each Tile in the Queue
 		        	for (Tile current : mAnimating) {
 	
-		        		isDone = current.animateDown(mTileSize);
+		        		isDone = current.animate(mTileSize);
 	            		
 	            		if (isDone) {
 	            			mAnimating.remove(current);
-	            			getBelow(current).setColor(current.getColor());
-	            			current.setColor(getAbove(current).getColor());
-	            			current.resetOffset();
 	            		}
 		        	}
 		        	
 		        	//ran out of stuff to animate
 		        	if (mAnimating.isEmpty()) {
-		        		more = findTilesToAnimate();
-		        		
-		        		//if there really isn't anything else to animate, do the post animation stuff
-		        		if (!more) {
-		        			mHandler.post(mPostUserClick);
-		        		}
+		        		doNext();
 		        	}
 		        	
     			}
@@ -107,6 +126,13 @@ public class GameView extends TileView {
     		}
     	}
     }
+    
+    final Runnable mNewRow = new Runnable() {
+    	public void run() {
+    		setMode(NEW_ROW);
+    		newRow();
+    	}
+    };
     
     final Runnable mRedraw = new Runnable() {
     	public void run() {
@@ -117,9 +143,6 @@ public class GameView extends TileView {
     
     final Runnable mPostUserClick = new Runnable() {
     	public void run() {
- 	    	//push up a new row of tiles
- 	    	newRow();
- 	    	GameView.this.invalidate();
  	    	
  	    	//check if any tiles are filled in top row
  	    	if (rowHasTile(0)) {	//TODO magic number
@@ -130,6 +153,8 @@ public class GameView extends TileView {
  	    	if (rowHasTile(1)) {        	//TODO magic number
  	    		Log.i(TAG, "user warning: about to lose!");
  	    	}
+ 	    	
+ 	    	setMode(RUNNING);
     	}
     };
         
@@ -166,7 +191,7 @@ public class GameView extends TileView {
     	clearAllTiles();
 
     	for (int i = 0; i < 4; i++){  //TODO magic number
-    		newRow();
+    		newRowStatic(); //TODO i think I can move the method inline here...
     	}
     	
         score = 0;
@@ -231,6 +256,7 @@ public class GameView extends TileView {
 	        if (mMode == RUNNING) {
 	        	//check that the tile clicked was not blank!
 	        	if (getTile(x,y).getColor() != BLANK) {
+	        		setMode(DROP);
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
 		        	breadthFirstSearch(x, y);
 		        	willAnim = findTilesToAnimate();
@@ -263,7 +289,7 @@ public class GameView extends TileView {
      * 
      * @param newMode
      */
-    public void setMode(int newMode) {
+    public /*synchronized*/ void setMode(int newMode) {
         int oldMode = mMode;
         mMode = newMode;
 
@@ -283,7 +309,7 @@ public class GameView extends TileView {
                   + res.getString(R.string.mode_lose_suffix);
             clearAllTiles();
         }
-        if (newMode == ANIMATE) {
+        if (newMode == DROP || newMode == NEW_ROW) {
         	return;
         }
 
@@ -352,7 +378,7 @@ public class GameView extends TileView {
     }
     
     //TODO documentation    
-    private void newRow() {
+    private void newRowStatic() {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
@@ -366,6 +392,36 @@ public class GameView extends TileView {
     		int color = (RNG.nextInt(3) + 1);  //TODO magic number
     		getTile(x, mYTileCount - 1).setColor(color);
     	}
+    }
+    
+    private void newRow() {
+    	//shift existing rows up
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = 0; y < mYTileCount - 1; y++) {
+    			Tile current = getTile(x,y);
+    			Tile below = getBelow(current);
+    			current.setColor(below.getColor());
+    		}
+    	}
+    	
+    	//new row on bottom
+    	for (int x = 0; x < mXTileCount; x++) {
+    		int color = (RNG.nextInt(3) + 1);  //TODO magic number
+    		getTile(x, mYTileCount - 1).setColor(color);
+    	}
+    	
+    	for (int x = 0; x < mXTileCount; x++) {
+    		for (int y = 0; y < mYTileCount; y++) {
+    			Tile current = getTile(x,y);
+    			if (current.getColor() != BLANK) {
+	    			current.incYOffset(mTileSize);
+	    			current.setAnimDirection(AnimDirection.UP);
+	    			mAnimating.add(current);
+    			}
+    		}
+    	}
+
+    	
     }
     
     private boolean tileIsBlank(int x, int y) {
@@ -407,8 +463,8 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				
     				mAnimating.add(getTile(x,y));
+    				getTile(x,y).setAnimDirection(AnimDirection.DOWN);
     				retval = true;
     			}
     		}
