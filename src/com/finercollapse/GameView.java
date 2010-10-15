@@ -414,7 +414,7 @@ public class GameView extends TileView {
     		for (int y = 0; y < mYTileCount; y++) {
     			Tile current = findTile(x,y);
     			if (current.getColor() != BLANK) {
-	    			current.incYOffset(mTileSize);
+	    			current.modYOffset(mTileSize);
 	    			current.setAnimDirection(AnimDirection.UP);
 	    			mAnimating.add(current);
     			}

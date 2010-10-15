@@ -67,6 +67,7 @@ public class TileView extends View {
     
     /**
      * Constructor
+     * 
      * @param context
      * @param attrs
      */
@@ -89,6 +90,7 @@ public class TileView extends View {
     
     /**
      * Find a Tile on the board with given coordinates
+     * 
      * @param x X position
      * @param y Y position
      * @return Tile found at specified location
@@ -120,7 +122,7 @@ public class TileView extends View {
         
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
-        		mTileGrid[x][y] = new Tile(0, x, y);
+        		mTileGrid[x][y] = new Tile(x, y);
         	}
         }
         
@@ -245,6 +247,6 @@ public class TileView extends View {
 	public boolean onTouchEvent(MotionEvent event) {        
 		return super.onTouchEvent(event);
 	}
-
-
+    
+    /****************** End Methods ***********************/
 }
