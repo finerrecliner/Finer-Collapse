@@ -20,6 +20,9 @@ public class TileView extends View {
 		
     /******************* Attributes **********************/
 	
+	/**
+	 * debugging identifier
+	 */
 	private static final String TAG = "TileView";
 	
     /**

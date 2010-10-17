@@ -22,63 +22,110 @@ import android.widget.TextView;
  */
 public class GameView extends TileView {
 
+    /******************* Attributes **********************/
+	
+    /**
+     * debugging identifier
+     */
     private static final String TAG = "GameView";
 
-    /**
-     * Current mode of application: READY to run, RUNNING, or you have already
-     * lost. static final ints are used instead of an enum for performance
-     * reasons.
-     */
-    private int mMode = READY;
-    public static final int READY = 1;
-    public static final int RUNNING = 2;
-    public static final int LOSE = 3;
-    public static final int ANIMATE = 4;
-    public static final int DROP = 5;
-    public static final int NEW_ROW = 6;
-
-    /**
-     * Labels for the drawables that will be loaded into the TileView class
-     */
-    private static final int BLANK = 0; 
-    private static final int RED_STAR = 1;
-    private static final int YELLOW_STAR = 2;
-    private static final int GREEN_STAR = 3;
-
-    /**
-     * mScore: used to track the number of apples captured mMoveDelay: number of
-     * milliseconds between snake movements. This will decrease as apples are
-     * captured.
-     */
-    private long score = 0;
-    private long mMoveDelay = 40;    
-
-	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>();
-    
+    /* magic numbers */
+    private static final int TOP_ROW = 0;
+    private static final int SECOND_ROW = 1;
     
     /**
-     * mStatusText: text shows to the user in some run states
+     * Used to track user's score per game round 
+     */
+    private long mScore = 0;
+
+    /**
+     * Number of milliseconds between screen redraws
+     */
+    private long mDelay = 40;    
+
+    /**
+     * Current state of the board
+     */
+    private int mState = READY;
+    
+	/**
+	 * Used to know which Tiles need to update their position during this screen redraw
+	 */
+	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>(); //TODO can we remove, and just ask EVERY Tile, if it wants to animate?
+    
+    /**
+     * Test shown to the user in some run states
      */
     private TextView mStatusText;
     
-
     /**
-     * Everyone needs a little randomness in their life
+     * Random Number Generator
      */
     private static final Random RNG = new Random();
     
-
     /**
-     * Create a simple handler that we can use to cause animation to happen.  We
-     * set ourselves as a target and we can use the sleep()
-     * function to cause an update/invalidate to occur at a later date.
+     * Create a simple handler to be able to schedule method calls in the near future.
      */
     private Handler mHandler = new Handler();
     
+    /**
+     * Set of instructions to do when it is time to push up a new row of Tiles
+     */
+    final Runnable mNewRow = new Runnable() {
+    	public void run() {
+    		setMode(NEW_ROW);
+    		newRow();
+    	}
+    };
+    
+    /**
+     * Set of instructions to do when it is time to redraw the screen
+     */
+    final Runnable mRedraw = new Runnable() {
+    	public void run() {
+    		GameView.this.invalidate();
+    	}
+    };
+    
+    /**
+     * Set of instructions to do after the board has finished all animations
+     */
+    final Runnable mPostUserClick = new Runnable() {
+    	public void run() {
+ 	    	
+ 	    	//check if any tiles are filled in top row
+ 	    	if (rowHasTile(TOP_ROW)) {
+ 	    		setMode(LOSE);
+ 	    		return;
+ 	    	}
+ 	    	
+ 	    	if (rowHasTile(SECOND_ROW)) {        	//TODO magic number
+ 	    		Log.i(TAG, "user warning: about to lose!");
+ 	    		//TODO warning by vibrate or screen alert?
+ 	    	}
+ 	    	
+ 	    	setMode(RUNNING);
+    	}
+    };
+        
+    /******************* End Attributes **********************/
+    
+    
+    
+    
+    /********************* Structures ***************************/
+    
+    /**
+     * A child thread in charge of redrawing the screen and managing animations
+     */
     class Animator extends Thread {
     	
+    	/**
+    	 * Figure out what the next instruction we should do next 
+    	 * based on the Game's state 
+    	 */
     	private void doNext() {
-    		switch (mMode) {
+    		switch (mState) {
     		case DROP:
     			drop();
     			break;
@@ -100,6 +147,7 @@ public class GameView extends TileView {
     		}
     	}
     	
+    	@Override
     	public void run() {
     		boolean isDone;
     		
@@ -122,44 +170,36 @@ public class GameView extends TileView {
 		        	
     			}
 	        	mHandler.post(mRedraw);    
-	        	SystemClock.sleep(mMoveDelay);
+	        	SystemClock.sleep(mDelay);
     		}
     	}
     }
     
-    final Runnable mNewRow = new Runnable() {
-    	public void run() {
-    		setMode(NEW_ROW);
-    		newRow();
-    	}
-    };
-    
-    final Runnable mRedraw = new Runnable() {
-    	public void run() {
-    		GameView.this.invalidate();
-    	}
-    };
-    
-    
-    final Runnable mPostUserClick = new Runnable() {
-    	public void run() {
- 	    	
- 	    	//check if any tiles are filled in top row
- 	    	if (rowHasTile(0)) {	//TODO magic number
- 	    		setMode(LOSE);
- 	    		return;
- 	    	}
- 	    	//TODO check if any tiles are filled in 2nd row --> warning
- 	    	if (rowHasTile(1)) {        	//TODO magic number
- 	    		Log.i(TAG, "user warning: about to lose!");
- 	    	}
- 	    	
- 	    	setMode(RUNNING);
-    	}
-    };
-        
+    /**
+     * Current mode of application: READY to run, RUNNING, or you have already
+     * lost. static final ints are used instead of an enum for performance
+     * reasons.
+     */
+    public static final int READY = 1;
+    public static final int RUNNING = 2;
+    public static final int LOSE = 3;
+    public static final int ANIMATE = 4;
+    public static final int DROP = 5;
+    public static final int NEW_ROW = 6;
 
-
+    /**
+     * Labels for the drawables that will be loaded into the TileView class
+     */
+    private static final int BLANK = 0; 
+    private static final int RED_STAR = 1;
+    private static final int YELLOW_STAR = 2;
+    private static final int GREEN_STAR = 3;
+    
+    
+    /****************** End Structures ***********************/
+    
+    /********************* Methods ***************************/
+    
     /**
      * Constructs a GameView based on inflation from XML
      * 
@@ -194,13 +234,11 @@ public class GameView extends TileView {
     		newRowStatic(); //TODO i think I can move the method inline here...
     	}
     	
-        score = 0;
+        mScore = 0;
     }
 
 
     /*
-     * handles key events in the game.
-     * 
      * (non-Javadoc)
      * 
      * @see android.view.View#onKeyDown(int, android.os.KeyEvent)
@@ -209,7 +247,7 @@ public class GameView extends TileView {
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
 
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            if (mMode == READY | mMode == LOSE) {
+            if (mState == READY | mState == LOSE) {
                 /*
                  * At the beginning of the game, or the end of a previous one,
                  * we should start a new game.
@@ -224,7 +262,7 @@ public class GameView extends TileView {
         }
 
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-            if (mMode == RUNNING) {
+            if (mState == RUNNING) {
             	setRandomBoard();
             	return (true);
             }
@@ -237,7 +275,9 @@ public class GameView extends TileView {
         return super.onKeyDown(keyCode, msg);
     }
     
-    //TODO documentation
+    /* (non-Javadoc)
+     * @see com.finercollapse.TileView#onTouchEvent(android.view.MotionEvent)
+     */
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
@@ -253,7 +293,7 @@ public class GameView extends TileView {
 	        	return true;
 	        }
 	        
-	        if (mMode == RUNNING) {
+	        if (mState == RUNNING) {
 	        	//check that the tile clicked was not blank!
 	        	if (findTile(x,y).getColor() != BLANK) {
 	        		setMode(DROP);
@@ -290,8 +330,8 @@ public class GameView extends TileView {
      * @param newMode
      */
     public /*synchronized*/ void setMode(int newMode) {
-        int oldMode = mMode;
-        mMode = newMode;
+        int oldMode = mState;
+        mState = newMode;
 
         if (newMode == RUNNING && oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
@@ -305,7 +345,7 @@ public class GameView extends TileView {
             str = res.getText(R.string.mode_ready);
         }
         if (newMode == LOSE) {
-            str = res.getString(R.string.mode_lose_prefix) + score
+            str = res.getString(R.string.mode_lose_prefix) + " " + mScore
                   + res.getString(R.string.mode_lose_suffix);
             clearAllTiles();
         }
@@ -473,6 +513,12 @@ public class GameView extends TileView {
     	
     	return retval;
     }
+    
+    
+    /****************** End Methods ***********************/
+    
+
+    
     
         
 }
