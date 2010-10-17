@@ -7,7 +7,9 @@ import android.widget.TextView;
 public class FinerCollapse extends Activity {
     private GameView gameView;
 	
-    /** Called when the activity is first created. */
+    /* (non-Javadoc)
+     * @see android.app.Activity#onCreate(android.os.Bundle)
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

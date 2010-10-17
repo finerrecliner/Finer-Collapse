@@ -146,7 +146,7 @@ public class Tile {
     
     /**
      * Update this tile's Offsets, so when the screen is redrawn, 
-     * it will have appeared to have moved.
+     * it will have appeared to have moved positions
      * @param distance how far to move
      * @return true if done moving one space <br>
      *         false if it has not reached its final destination yet
@@ -166,7 +166,12 @@ public class Tile {
     	}
     }
     
-    /* returns true only if it has finished an animation */
+    /**
+     * Moves a Tile up a little bit per redraw.
+     * @param height number of pixels to move in complete animation
+     * @return True when it reaches it final position. <br> 
+     * 		   False if there is more to animate
+     */
     public boolean animateUp(int height) {
     		int offset = 4; //TODO magic number
 
@@ -187,7 +192,12 @@ public class Tile {
 	    	}
     }    
     
-    /* returns true only if it has finished an animation */
+    /**
+     * Moves a Tile down a little bit per redraw
+     * @param height number of pixels to move in complete animation
+     * @return True when it reaches it final position. <br> 
+     * 		   False if there is more to animate
+     */
     public boolean animateDown(int height) {
     		int offset = 4; //TODO magic number
 
