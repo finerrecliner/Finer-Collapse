@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.finercollapse.Tile.AnimDirection;
+import com.FinerCollapse.Constants.*;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -57,11 +58,7 @@ public class GameView extends TileView {
      * Test shown to the user in some run states
      */
     private TextView mStatusText;
-    
-    /**
-     * Random Number Generator
-     */
-    private static final Random RNG = new Random();
+
     
     /**
      * Create a simple handler to be able to schedule method calls in the near future.
@@ -137,11 +134,15 @@ public class GameView extends TileView {
     		}
     	} 	
     	
-    	
+    	/**
+    	 * Look for more Tiles to drop. 
+    	 * If there are any, then stay in DROP state, to animate them.
+    	 * Otherwise proceed to the next State
+    	 */
     	public void drop() {
     		boolean more = findTilesToAnimate();
     		
-    		//if there isn't anything else to animate, do the post animation stuff
+    		//if there isn't anything else to animate, do the post-animation stuff
     		if (!more) {
     			mHandler.post(mNewRow);
     		}
@@ -151,11 +152,13 @@ public class GameView extends TileView {
     	public void run() {
     		boolean isDone;
     		
+    		/* infinite loop */
     		while (true) {
     			if (!mAnimating.isEmpty()) {
 	 				//for each Tile in the Queue
 		        	for (Tile current : mAnimating) {
 	
+		        		// try to animate current Tile
 		        		isDone = current.animate(mTileSize);
 	            		
 	            		if (isDone) {
@@ -163,14 +166,14 @@ public class GameView extends TileView {
 	            		}
 		        	}
 		        	
-		        	//ran out of stuff to animate
+		        	//ran out of stuff to animate, change steps
 		        	if (mAnimating.isEmpty()) {
 		        		doNext();
 		        	}
 		        	
     			}
-	        	mHandler.post(mRedraw);    
-	        	SystemClock.sleep(mDelay);
+	        	mHandler.post(mRedraw);      //redraw screen    
+	        	SystemClock.sleep(mDelay);   //sleep
     		}
     	}
     }
@@ -186,15 +189,6 @@ public class GameView extends TileView {
     public static final int ANIMATE = 4;
     public static final int DROP = 5;
     public static final int NEW_ROW = 6;
-
-    /**
-     * Labels for the drawables that will be loaded into the TileView class
-     */
-    private static final int BLANK = 0; 
-    private static final int RED_STAR = 1;
-    private static final int YELLOW_STAR = 2;
-    private static final int GREEN_STAR = 3;
-    
     
     /****************** End Structures ***********************/
     
@@ -216,11 +210,11 @@ public class GameView extends TileView {
 
         Resources r = this.getContext().getResources();
         
-        resetTiles(4); //TODO what does this do?
-        loadTile(RED_STAR, r.getDrawable(R.drawable.redstar));
-        loadTile(YELLOW_STAR, r.getDrawable(R.drawable.yellowstar));
-        loadTile(GREEN_STAR, r.getDrawable(R.drawable.greenstar));
-        loadTile(BLANK, r.getDrawable(R.drawable.blankstar));
+        resetTiles(Color.getSize()); //TODO what does this do?
+        loadTile(Color.RED, r.getDrawable(R.drawable.redstar));
+        loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellowstar));
+        loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
+        loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
         
         Animator a = new Animator();
         a.start();
@@ -295,7 +289,7 @@ public class GameView extends TileView {
 	        
 	        if (mState == RUNNING) {
 	        	//check that the tile clicked was not blank!
-	        	if (findTile(x,y).getColor() != BLANK) {
+	        	if (findTile(x,y).getColor() != Color.BLANK) {
 	        		setMode(DROP);
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
 		        	breadthFirstSearch(x, y);
@@ -397,7 +391,7 @@ public class GameView extends TileView {
 	    				queue.add(a);
     			}
     		}
-    		current.setColor(BLANK);
+    		current.setColor(Color.BLANK);
     		current.setBFSStatus(Tile.BFS.HANDLED);
     	}
     	return;
@@ -411,7 +405,7 @@ public class GameView extends TileView {
     private void setRandomBoard() {
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
-        		int color = (RNG.nextInt(3)) + 1;
+        		Color color = Color.getRandom();
         		findTile(x, y).setColor(color);
         	}
         }
@@ -429,7 +423,7 @@ public class GameView extends TileView {
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
-    		int color = (RNG.nextInt(3) + 1);  //TODO magic number
+    		Color color = Color.getRandom();
     		findTile(x, mYTileCount - 1).setColor(color);
     	}
     }
@@ -446,14 +440,14 @@ public class GameView extends TileView {
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
-    		int color = (RNG.nextInt(3) + 1);  //TODO magic number
+    		Color color = Color.getRandom();
     		findTile(x, mYTileCount - 1).setColor(color);
     	}
     	
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
     			Tile current = findTile(x,y);
-    			if (current.getColor() != BLANK) {
+    			if (current.getColor() != Color.BLANK) {
 	    			current.modYOffset(mTileSize);
 	    			current.setAnimDirection(AnimDirection.UP);
 	    			mAnimating.add(current);
@@ -465,7 +459,7 @@ public class GameView extends TileView {
     }
     
     private boolean tileIsBlank(int x, int y) {
-    	return (findTile(x, y).getColor() == BLANK);
+    	return (findTile(x, y).getColor() == Color.BLANK);
     }
 
     //TODO documentation

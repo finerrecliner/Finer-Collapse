@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import com.FinerCollapse.Constants.*;
 
 
 /**
@@ -63,6 +64,7 @@ public class TileView extends View {
     private final Paint mPaint = new Paint();
     
     /******************* End Attributes **********************/
+    
     
     
     /********************* Methods ***************************/
@@ -144,13 +146,13 @@ public class TileView extends View {
      * @param key integer to associate with a Drawable
      * @param img Drawable to associate with key value
      */
-    public void loadTile(int key, Drawable img) {
+    public void loadTile(Color c, Drawable img) {
         Bitmap bitmap = Bitmap.createBitmap(mTileSize, mTileSize, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         img.setBounds(0, 0, mTileSize, mTileSize);
         img.draw(canvas);
         
-        mTileArray[key] = bitmap;
+        mTileArray[c.ordinal()] = bitmap;
     }
 
 
@@ -160,7 +162,7 @@ public class TileView extends View {
     public void clearAllTiles() {
         for (int x = 0; x < mXTileCount; x++) {
             for (int y = 0; y < mYTileCount; y++) {
-            	mTileGrid[x][y].setColor(0);
+            	mTileGrid[x][y].setColor(Color.BLANK);
             }
         }
     }
@@ -215,7 +217,7 @@ public class TileView extends View {
     	
     	for (int y = 0; y < mYTileCount; y++) {
     		for (int x = 0; x < mXTileCount; x++) {
-            	buffer += mTileGrid[x][y].getColorChar() + " ";
+            	buffer += mTileGrid[x][y].getColor().getChar() + " ";
             }
             System.out.println(buffer + "\n");
             buffer = "";	//clear buffer for next line
@@ -232,8 +234,8 @@ public class TileView extends View {
         super.onDraw(canvas);
         for (int x = 0; x < mXTileCount; x += 1) {
             for (int y = 0; y < mYTileCount; y += 1) {
-                if (mTileGrid[x][y].getColor() > 0) { 
-                    canvas.drawBitmap(mTileArray[mTileGrid[x][y].getColor()], 
+                if (mTileGrid[x][y].getColor() != Color.BLANK) { 
+                    canvas.drawBitmap(mTileArray[mTileGrid[x][y].getColor().ordinal()], 
                     		mTileGrid[x][y].getXOffset() + mXOffset + (x * mTileSize),
                     		mTileGrid[x][y].getYOffset() + mYOffset + (y * mTileSize),
                     		mPaint);

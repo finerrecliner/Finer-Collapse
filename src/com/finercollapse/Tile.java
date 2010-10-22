@@ -3,6 +3,8 @@
  */
 package com.finercollapse;
 
+import com.FinerCollapse.Constants.*;
+
 /**
  * Represents an individual item on the game board
  */
@@ -28,7 +30,7 @@ public class Tile {
 	 * when being drawn.
 	 * (example: red, green, yellow, etc)
 	 */
-	private int color;
+	private Color color;
 	
     /**
      * Used to support Breadth First Search algorithm 
@@ -85,7 +87,7 @@ public class Tile {
      * @param newX set X location in mTileGrid
      * @param newY set Y location in mTileGrid
      */
-    public Tile(int newColor, int newX, int newY) {
+    public Tile(Color newColor, int newX, int newY) {
     	tileConstructor(newColor, newX, newY);
     }
     
@@ -96,7 +98,7 @@ public class Tile {
      * @param newY set Y location in mTileGrid
      */
     public Tile(int newX, int newY) {
-    	tileConstructor(0, newX, newY);
+    	tileConstructor(Color.BLANK, newX, newY);
     }
     
     /**
@@ -106,7 +108,7 @@ public class Tile {
      * @param newX set X location in mTileGrid
      * @param newY set Y location in mTileGrid
      */
-    private void tileConstructor(int newColor, int newX, int newY) {
+    private void tileConstructor(Color newColor, int newX, int newY) {
         color = newColor;
         x = newX;
         y = newY;
@@ -119,12 +121,12 @@ public class Tile {
     public int getY() { return y; }
     public int getXOffset() { return xOffset; }
     public int getYOffset() { return yOffset; }
-    public int getColor() { return color; }
+    public Color getColor() { return color; }
     public BFS getBFSStatus() { return BFSStatus; }
 
     
     /* modifiers */
-    public void setColor(int c) { color = c; }
+    public void setColor(Color c) { color = c; }
     public void setBFSStatus(BFS s) { BFSStatus = s; }
     public void setAnimDirection(AnimDirection ad) { animDirection = ad; }
     public void setAdjacents(Tile u, Tile d, Tile l, Tile r) { up = u; down = d; left = l; right = r; }
@@ -182,7 +184,7 @@ public class Tile {
 	    		if (down != null) {
 	    			color = down.getColor();
 	    		} else {
-	    			color = 0;
+	    			color = Color.BLANK;
 	    		}
 	    		resetOffset();
 	    		return true;
@@ -214,25 +216,6 @@ public class Tile {
 	    	}
     }
     
-
-    /**
-     * @return Tile's color represented a single character. <br>
-     * 		   A space means the Tile is BLANK. <br>
-     *         example: red = 'r'.
-     */
-    public char getColorChar() {
-    	char retval;
-    	
-    	switch (color) {
-    	case 0: retval = ' '; break;
-    	case 1: retval = 'r'; break;
-    	case 2: retval = 'y'; break;
-    	case 3: retval = 'g'; break;
-    	default: retval = 'X';	//error case
-    	}
-    	
-    	return retval;
-    }
     
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
