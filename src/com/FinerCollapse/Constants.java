@@ -14,7 +14,6 @@ public class Constants {
 	
     /**
      * Label for drawables that the TileView class will use
-     *
      */
     public static enum Color {
     	BLANK,
@@ -22,7 +21,6 @@ public class Constants {
     	YELLOW,
     	GREEN;
 
-    	
         private static final List<Color> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
         private static final int SIZE = VALUES.size();
     	

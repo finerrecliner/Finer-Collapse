@@ -68,9 +68,9 @@ public class GameView extends TileView {
     /**
      * Set of instructions to do when it is time to push up a new row of Tiles
      */
-    final Runnable mNewRow = new Runnable() {
+    private final Runnable mNewRow = new Runnable() {
     	public void run() {
-    		setMode(NEW_ROW);
+    		setState(NEW_ROW);
     		newRow();
     	}
     };
@@ -78,7 +78,7 @@ public class GameView extends TileView {
     /**
      * Set of instructions to do when it is time to redraw the screen
      */
-    final Runnable mRedraw = new Runnable() {
+    private final Runnable mRedraw = new Runnable() {
     	public void run() {
     		GameView.this.invalidate();
     	}
@@ -87,12 +87,12 @@ public class GameView extends TileView {
     /**
      * Set of instructions to do after the board has finished all animations
      */
-    final Runnable mPostUserClick = new Runnable() {
+    private final Runnable mPostUserClick = new Runnable() {
     	public void run() {
  	    	
  	    	//check if any tiles are filled in top row
  	    	if (rowHasTile(TOP_ROW)) {
- 	    		setMode(LOSE);
+ 	    		setState(LOSE);
  	    		return;
  	    	}
  	    	
@@ -101,7 +101,7 @@ public class GameView extends TileView {
  	    		//TODO warning by vibrate or screen alert?
  	    	}
  	    	
- 	    	setMode(RUNNING);
+ 	    	setState(RUNNING);
     	}
     };
         
@@ -166,7 +166,7 @@ public class GameView extends TileView {
 	            		}
 		        	}
 		        	
-		        	//ran out of stuff to animate, change steps
+		        	//ran out of stuff to animate, do next step 
 		        	if (mAnimating.isEmpty()) {
 		        		doNext();
 		        	}
@@ -205,25 +205,33 @@ public class GameView extends TileView {
         initGameView();
    }
 
+    /**
+     * Initialize resources
+     */
     private void initGameView() {
         setFocusable(true);
 
         Resources r = this.getContext().getResources();
         
-        resetTiles(Color.getSize()); //TODO what does this do?
+        resetTiles(Color.getSize());
         loadTile(Color.RED, r.getDrawable(R.drawable.redstar));
         loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellowstar));
         loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
         loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
         
+        // spawn a child thread to handle animations
         Animator a = new Animator();
         a.start();
     }
     
 
+    /**
+     * Prepare the board for a new round of the game
+     */
     private void initNewGame() {
     	clearAllTiles();
 
+    	//add prefilled lines
     	for (int i = 0; i < 4; i++){  //TODO magic number
     		newRowStatic(); //TODO i think I can move the method inline here...
     	}
@@ -244,24 +252,16 @@ public class GameView extends TileView {
             if (mState == READY | mState == LOSE) {
                 /*
                  * At the beginning of the game, or the end of a previous one,
-                 * we should start a new game.
+                 * we should prep the board.
                  */
                 initNewGame();
-                setMode(RUNNING);
-                //update();
-                return (true);
+                setState(RUNNING);
             }
             
-            return (true);
-        }
-
-        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-            if (mState == RUNNING) {
-            	setRandomBoard();
-            	return (true);
-            }
+            return true;
         }
         
+        // this is for debugging. TODO remove
         if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
         	this.printBoard();
         }
@@ -275,7 +275,8 @@ public class GameView extends TileView {
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
-    	boolean willAnim;
+    	boolean willAnim; //we found something to animate
+    	Tile selected;
     	
     	if (MotionEvent.ACTION_DOWN == action) {
     	
@@ -288,11 +289,12 @@ public class GameView extends TileView {
 	        }
 	        
 	        if (mState == RUNNING) {
-	        	//check that the tile clicked was not blank!
-	        	if (findTile(x,y).getColor() != Color.BLANK) {
-	        		setMode(DROP);
+	        	selected = findTile(x,y);
+	        	//check that the tile clicked was not blank
+	        	if (selected.getColor() != Color.BLANK) {
+	        		setState(DROP);
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-		        	breadthFirstSearch(x, y);
+		        	setMatchingNeighbors(selected, Color.BLANK);
 		        	willAnim = findTilesToAnimate();
 		        	
 		        	// if nothing to animate from this click, don't forget to do this stuff anyways!
@@ -318,32 +320,31 @@ public class GameView extends TileView {
 
 
     /**
-     * Updates the current mode of the application (RUNNING or PAUSED or the like)
+     * Updates the current state of the application (RUNNING or PAUSED or the like)
      * as well as sets the visibility of textview for notification
      * 
-     * @param newMode
+     * @param newState
      */
-    public /*synchronized*/ void setMode(int newMode) {
+    public void setState(int newState) {
         int oldMode = mState;
-        mState = newMode;
+        mState = newState;
 
-        if (newMode == RUNNING && oldMode != RUNNING) {
+        if (newState == RUNNING && oldMode != RUNNING) {
             mStatusText.setVisibility(View.INVISIBLE);
-            //update();
             return;
         }
 
         Resources res = getContext().getResources();
         CharSequence str = "";
-        if (newMode == READY) {
+        if (newState == READY) {
             str = res.getText(R.string.mode_ready);
         }
-        if (newMode == LOSE) {
+        if (newState == LOSE) {
             str = res.getString(R.string.mode_lose_prefix) + " " + mScore
                   + res.getString(R.string.mode_lose_suffix);
             clearAllTiles();
         }
-        if (newMode == DROP || newMode == NEW_ROW) {
+        if (newState == DROP || newState == NEW_ROW) {
         	return;
         }
 
@@ -353,14 +354,16 @@ public class GameView extends TileView {
 
 
     /**
-     * breadth-first-search algorithm
+     * Find all touching tiles that are the same color using
+     * a breadth-first-search algorithm, and
+     * change their color to BLANK
+     * 
      * @param sourceX
      * @param sourceY
      */
-    private void breadthFirstSearch(int sourceX, int sourceY) {
+    private void setMatchingNeighbors(Tile source, Color color) {
     	Queue<Tile> queue = new LinkedList<Tile>();
-    	Tile source = findTile(sourceX, sourceY);
-    	Tile[] adj = new Tile[4];
+    	Tile[] adj = new Tile[4]; 
     	
     	/* initialize */
     	for (int x = 0; x < mXTileCount; x++) {
@@ -377,7 +380,7 @@ public class GameView extends TileView {
     	while (!queue.isEmpty()) {
     		Tile current = queue.poll(); //return head and remove from queue
     		
-    		adj[0] = getAbove(current);
+    		adj[0] = getAbove(current); //TODO not needed anymore. each tile knows its neighbors
     		adj[1] = getBelow(current);
     		adj[2] = getRight(current);
     		adj[3] = getLeft (current);
@@ -391,27 +394,18 @@ public class GameView extends TileView {
 	    				queue.add(a);
     			}
     		}
-    		current.setColor(Color.BLANK);
+    		//what to do with each Tile Discovered
+    		current.setColor(color);
     		current.setBFSStatus(Tile.BFS.HANDLED);
     	}
     	return;
     }
-    
-    
+        
     /**
-     * Draws some walls.
-     * TODO: documentation
+     * Shift up the existing rows of Tiles on the Board,
+     * and create a new row of random Tiles in the bottom row.
+     * This is all done WITHOUT animation.
      */
-    private void setRandomBoard() {
-        for (int x = 0; x < mXTileCount; x++) {
-        	for (int y = 0; y < mYTileCount; y++) {
-        		Color color = Color.getRandom();
-        		findTile(x, y).setColor(color);
-        	}
-        }
-    }
-    
-    //TODO documentation    
     private void newRowStatic() {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
@@ -428,6 +422,11 @@ public class GameView extends TileView {
     	}
     }
     
+    /**
+     * Shift up the existing rows of Tiles on the Board,
+     * and create a new row of random Tiles in the bottom row.
+     * This is process is animated
+     */
     private void newRow() {
     	//shift existing rows up
     	for (int x = 0; x < mXTileCount; x++) {
@@ -447,6 +446,7 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
     			Tile current = findTile(x,y);
+    			
     			if (current.getColor() != Color.BLANK) {
 	    			current.modYOffset(mTileSize);
 	    			current.setAnimDirection(AnimDirection.UP);
@@ -458,12 +458,22 @@ public class GameView extends TileView {
     	
     }
     
+    /**
+     * Checks if a Tile's color is BLANK
+     * @param x
+     * @param y
+     * @return true if BLANK. false otherwise.
+     */
     private boolean tileIsBlank(int x, int y) {
     	return (findTile(x, y).getColor() == Color.BLANK);
     }
-
-    //TODO documentation
-    //return true if there is a filled tile in given row
+        
+    /**
+     * Check if a row has at least one non-BLANK Tile in it
+     * @param row
+     * @return true if there is a filled tile in given row. <br>
+     *         false if the row has only BLANKs 
+     */
     private boolean rowHasTile(int row) {
     	for (int x = 0; x < mXTileCount; x++){
     		if (!tileIsBlank(x, row)) {
@@ -474,10 +484,19 @@ public class GameView extends TileView {
     	return false;
     }
     
-    private boolean emptyBelowHere(int col, int y) {
+    /**
+     * Checks if there is at least one BLANK tile somewhere below 
+     * the provided Tile coordinates
+     * 
+     * @param col
+     * @param y
+     * @return true if there is a BLANK below the provided Tile coordinates <br>
+     *         false if a BLANK was not found 
+     */
+    private boolean emptyBelowHere(int column, int y) {
     	//no need to examine the first tile, it should be filled.
-    	for (y++; y < mYTileCount; y++) {
-    		if  (tileIsBlank(col, y)) {
+    	for (y += 1; y < mYTileCount; y++) {
+    		if  (tileIsBlank(column, y)) {
     			return true;
     		}
     	}
@@ -485,13 +504,16 @@ public class GameView extends TileView {
     	return false;
     }
     
-    
-      
-    //return true if animation needs to be done
+    /**
+     * Look for tiles that need to be dropped. If any are 
+     * found, they are queued up to be animated
+     * 
+     * @return true if an animation needs to be done
+     *         false otherwise
+     */
     private boolean findTilesToAnimate() {
     	boolean retval = false;
 	
-    	// drop tiles one space that have a BLANK below them
     	// loop through rows from bottom to top
     	// Do not bother looking at the bottom row, as nothing can be "below" it
     	for (int x = 0; x < mXTileCount; x++) {
@@ -504,15 +526,9 @@ public class GameView extends TileView {
     		}
     	}
     	
-    	
     	return retval;
     }
     
-    
     /****************** End Methods ***********************/
-    
-
-    
-    
         
 }
