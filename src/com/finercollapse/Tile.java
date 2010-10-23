@@ -10,7 +10,7 @@ import com.FinerCollapse.Constants.*;
  */
 public class Tile {
 	
-    /******************* Attributes **********************/
+	/************* Private Attributes ******************/
 	
     /**
      * Location in mTileGrid
@@ -50,10 +50,9 @@ public class Tile {
     private Tile left;
     private Tile right;
     
-    /******************* End Attributes **********************/
+    /*************** End Private Attributes *******************/
     
-    /********************* Structures ***************************/
-
+    /***************** Public Structures **********************/
 
     /**
      * Tile's state while used in a Breadth First Search algorithm
@@ -75,9 +74,9 @@ public class Tile {
     	RIGHT,
     }
     
-    /****************** End Structures ***********************/
+    /*************** End Public Structures *******************/
     
-    /********************* Methods ***************************/
+    /****************** Public Methods ***********************/
     
 
     /**
@@ -99,21 +98,6 @@ public class Tile {
      */
     public Tile(int newX, int newY) {
     	tileConstructor(Color.BLANK, newX, newY);
-    }
-    
-    /**
-     * Constructor helper method
-     * 
-     * @param newColor set initial color
-     * @param newX set X location in mTileGrid
-     * @param newY set Y location in mTileGrid
-     */
-    private void tileConstructor(Color newColor, int newX, int newY) {
-        color = newColor;
-        x = newX;
-        y = newY;
-        xOffset = 0;
-        yOffset = 0;
     }
     
     /* accessors */
@@ -225,6 +209,25 @@ public class Tile {
         return "Tile: [" + color + "," + x + "," + y + "]";
     }
     
-    /****************** End Methods ***********************/
+    /***************** End Public Methods *********************/
+    
+    /****************** Private Methods ***********************/
+    /**
+     * Constructor helper method
+     * 
+     * @param newColor set initial color
+     * @param newX set X location in mTileGrid
+     * @param newY set Y location in mTileGrid
+     */
+    private void tileConstructor(Color newColor, int newX, int newY) {
+        color = newColor;
+        x = newX;
+        y = newY;
+        xOffset = 0;
+        yOffset = 0;
+    }
+    
+    /***************** End Private Methods *********************/
+    
     
 }

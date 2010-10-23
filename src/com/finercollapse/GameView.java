@@ -23,7 +23,7 @@ import android.widget.TextView;
  */
 public class GameView extends TileView {
 
-    /******************* Attributes **********************/
+    /************* Private Attributes ******************/
 	
     /**
      * debugging identifier
@@ -105,7 +105,7 @@ public class GameView extends TileView {
     	}
     };
         
-    /******************* End Attributes **********************/
+    /*************** End Private Attributes *******************/
     
     
     
@@ -192,7 +192,7 @@ public class GameView extends TileView {
     
     /****************** End Structures ***********************/
     
-    /********************* Methods ***************************/
+    /****************** Public Methods ***********************/
     
     /**
      * Constructs a GameView based on inflation from XML
@@ -204,42 +204,40 @@ public class GameView extends TileView {
         super(context, attrs);
         initGameView();
    }
-
+    
     /**
-     * Initialize resources
+     * Updates the current state of the application (RUNNING or PAUSED or the like)
+     * as well as sets the visibility of textview for notification
+     * 
+     * @param newState
      */
-    private void initGameView() {
-        setFocusable(true);
+    public void setState(int newState) {
+        int oldMode = mState;
+        mState = newState;
 
-        Resources r = this.getContext().getResources();
-        
-        resetTiles(Color.getSize());
-        loadTile(Color.RED, r.getDrawable(R.drawable.redstar));
-        loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellowstar));
-        loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
-        loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
-        
-        // spawn a child thread to handle animations
-        Animator a = new Animator();
-        a.start();
+        if (newState == RUNNING && oldMode != RUNNING) {
+            mStatusText.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        Resources res = getContext().getResources();
+        CharSequence str = "";
+        if (newState == READY) {
+            str = res.getText(R.string.mode_ready);
+        }
+        if (newState == LOSE) {
+            str = res.getString(R.string.mode_lose_prefix) + " " + mScore
+                  + res.getString(R.string.mode_lose_suffix);
+            clearAllTiles();
+        }
+        if (newState == DROP || newState == NEW_ROW) {
+        	return;
+        }
+
+        mStatusText.setText(str);
+        mStatusText.setVisibility(View.VISIBLE);
     }
     
-
-    /**
-     * Prepare the board for a new round of the game
-     */
-    private void initNewGame() {
-    	clearAllTiles();
-
-    	//add prefilled lines
-    	for (int i = 0; i < 4; i++){  //TODO magic number
-    		newRowStatic(); //TODO i think I can move the method inline here...
-    	}
-    	
-        mScore = 0;
-    }
-
-
     /*
      * (non-Javadoc)
      * 
@@ -318,40 +316,44 @@ public class GameView extends TileView {
         mStatusText = newView;
     }
 
+    /***************** End Public Methods *********************/
+    
+    /****************** Private Methods ***********************/
+    
+    
+    /**
+     * Initialize resources
+     */
+    private void initGameView() {
+        setFocusable(true);
+
+        Resources r = this.getContext().getResources();
+        
+        resetTiles(Color.getSize());
+        loadTile(Color.RED, r.getDrawable(R.drawable.redstar));
+        loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellowstar));
+        loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
+        loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
+        
+        // spawn a child thread to handle animations
+        Animator a = new Animator();
+        a.start();
+    }
+    
 
     /**
-     * Updates the current state of the application (RUNNING or PAUSED or the like)
-     * as well as sets the visibility of textview for notification
-     * 
-     * @param newState
+     * Prepare the board for a new round of the game
      */
-    public void setState(int newState) {
-        int oldMode = mState;
-        mState = newState;
+    private void initNewGame() {
+    	clearAllTiles();
 
-        if (newState == RUNNING && oldMode != RUNNING) {
-            mStatusText.setVisibility(View.INVISIBLE);
-            return;
-        }
-
-        Resources res = getContext().getResources();
-        CharSequence str = "";
-        if (newState == READY) {
-            str = res.getText(R.string.mode_ready);
-        }
-        if (newState == LOSE) {
-            str = res.getString(R.string.mode_lose_prefix) + " " + mScore
-                  + res.getString(R.string.mode_lose_suffix);
-            clearAllTiles();
-        }
-        if (newState == DROP || newState == NEW_ROW) {
-        	return;
-        }
-
-        mStatusText.setText(str);
-        mStatusText.setVisibility(View.VISIBLE);
+    	//add prefilled lines
+    	for (int i = 0; i < 4; i++){  //TODO magic number
+    		newRowStatic(); //TODO i think I can move the method inline here...
+    	}
+    	
+        mScore = 0;
     }
-
 
     /**
      * Find all touching tiles that are the same color using
@@ -459,52 +461,6 @@ public class GameView extends TileView {
     }
     
     /**
-     * Checks if a Tile's color is BLANK
-     * @param x
-     * @param y
-     * @return true if BLANK. false otherwise.
-     */
-    private boolean tileIsBlank(int x, int y) {
-    	return (findTile(x, y).getColor() == Color.BLANK);
-    }
-        
-    /**
-     * Check if a row has at least one non-BLANK Tile in it
-     * @param row
-     * @return true if there is a filled tile in given row. <br>
-     *         false if the row has only BLANKs 
-     */
-    private boolean rowHasTile(int row) {
-    	for (int x = 0; x < mXTileCount; x++){
-    		if (!tileIsBlank(x, row)) {
-    			return true;
-    		}
-    	}
-    	
-    	return false;
-    }
-    
-    /**
-     * Checks if there is at least one BLANK tile somewhere below 
-     * the provided Tile coordinates
-     * 
-     * @param col
-     * @param y
-     * @return true if there is a BLANK below the provided Tile coordinates <br>
-     *         false if a BLANK was not found 
-     */
-    private boolean emptyBelowHere(int column, int y) {
-    	//no need to examine the first tile, it should be filled.
-    	for (y += 1; y < mYTileCount; y++) {
-    		if  (tileIsBlank(column, y)) {
-    			return true;
-    		}
-    	}
-    	    	
-    	return false;
-    }
-    
-    /**
      * Look for tiles that need to be dropped. If any are 
      * found, they are queued up to be animated
      * 
@@ -529,6 +485,6 @@ public class GameView extends TileView {
     	return retval;
     }
     
-    /****************** End Methods ***********************/
-        
+    /***************** End Private Methods *********************/
+    
 }

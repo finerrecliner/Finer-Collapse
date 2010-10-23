@@ -19,13 +19,28 @@ import com.FinerCollapse.Constants.*;
  */
 public class TileView extends View {
 		
-    /******************* Attributes **********************/
+    /***************** Private Attributes *********************/
 	
 	/**
 	 * debugging identifier
 	 */
 	private static final String TAG = "TileView";
 	
+    /**
+     * A hash that maps integer handles specified by the subclasser to the
+     * drawable that will be used for that reference
+     */
+    private Bitmap[] mTileArray; 
+
+    /**
+     * Used to draw Bitmaps
+     */
+    private final Paint mPaint = new Paint();
+    
+    /*************** End Private Attributes *******************/
+	
+    /**************** Protected Attributes ********************/
+    
     /**
      * Size of the Drawable. Width and Height will be equal.
      * Width/Height are measured in pixels, and Drawables will be 
@@ -36,39 +51,29 @@ public class TileView extends View {
     /**
      * Number of Tiles to Draw horizontally & vertically in the View
      */
-    protected static int mXTileCount;
-    protected static int mYTileCount;
+    protected int mXTileCount;
+    protected int mYTileCount;
 
     /**
      * Offset for entire board
      */
-    protected static int mXOffset;
-    protected static int mYOffset;
-
-    
-    /**
-     * A hash that maps integer handles specified by the subclasser to the
-     * drawable that will be used for that reference
-     */
-    private Bitmap[] mTileArray; 
+    protected int mXOffset;
+    protected int mYOffset;
 
     /**
      * A two-dimensional array of Tiles that represents the
      * game board of which tiles should be drawn at those locations
      */
     protected Tile[][] mTileGrid;
+    
+    /*************** End Protected Attributes *****************/
 
-    /**
-     * Used to draw Bitmaps
-     */
-    private final Paint mPaint = new Paint();
     
-    /******************* End Attributes **********************/
+
     
     
     
-    /********************* Methods ***************************/
-    
+    /******************** Public Methods ***********************/
     
     /**
      * Constructor
@@ -83,62 +88,7 @@ public class TileView extends View {
         mTileSize = a.getInteger(R.styleable.TileView_tileSize, 36); //TODO doesnt work
         a.recycle();
     }
- 
-    /**
-     * Resets the internal array of Bitmaps used for drawing tiles
-     * 
-     * @param tilecount max number of tiles to be inserted
-     */
-    public void resetTiles(int tilecount) {
-    	mTileArray = new Bitmap[tilecount];
-    }
     
-    /**
-     * Find a Tile on the board with given coordinates
-     * 
-     * @param x X position
-     * @param y Y position
-     * @return Tile found at specified location
-     */
-    public Tile findTile(int x, int y) {
-    	try {
-    		return mTileGrid[x][y];
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-    		Log.w(TAG + ":findTile(" + x + "," + y + ")", e.toString());
-    		return null;
-    	}
-    }
-    
-    /* (non-Javadoc)
-     * @see android.view.View#onSizeChanged(int, int, int, int)
-     */
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        mXTileCount = (int) Math.floor(w / mTileSize);
-        mYTileCount = (int) Math.floor(h / mTileSize);
-
-        mXOffset = ((w - (mTileSize * mXTileCount)) / 2);
-        mYOffset = ((h - (mTileSize * mYTileCount)) / 2);
-
-        mTileGrid = new Tile[mXTileCount][mYTileCount];
-        
-        Tile t;
-        
-        for (int x = 0; x < mXTileCount; x++) {
-        	for (int y = 0; y < mYTileCount; y++) {
-        		mTileGrid[x][y] = new Tile(x, y);
-        	}
-        }
-        
-        for (int x = 0; x < mXTileCount; x++) {
-        	for (int y = 0; y < mYTileCount; y++) {
-        		t = findTile(x,y);
-        		t.setAdjacents(getAbove(t), getBelow(t), getLeft(t), getRight(t));
-        	}
-        }
-    }
-
     /**
      * Function to set the specified Drawable as the tile for a particular
      * integer key.
@@ -153,18 +103,6 @@ public class TileView extends View {
         img.draw(canvas);
         
         mTileArray[c.ordinal()] = bitmap;
-    }
-
-
-    /**
-     * Sets all Tiles on the board to BLANK
-     */
-    public void clearAllTiles() {
-        for (int x = 0; x < mXTileCount; x++) {
-            for (int y = 0; y < mYTileCount; y++) {
-            	mTileGrid[x][y].setColor(Color.BLANK);
-            }
-        }
     }
     
     /* 0,0 is at upper left */
@@ -253,5 +191,129 @@ public class TileView extends View {
 		return super.onTouchEvent(event);
 	}
     
-    /****************** End Methods ***********************/
+    
+    
+    /******************* End Public Methods *********************/
+    
+    
+    /******************* Protected Methods **********************/
+    
+    /* (non-Javadoc)
+     * @see android.view.View#onSizeChanged(int, int, int, int)
+     */
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        mXTileCount = (int) Math.floor(w / mTileSize);
+        mYTileCount = (int) Math.floor(h / mTileSize);
+
+        mXOffset = ((w - (mTileSize * mXTileCount)) / 2);
+        mYOffset = ((h - (mTileSize * mYTileCount)) / 2);
+
+        mTileGrid = new Tile[mXTileCount][mYTileCount];
+        
+        Tile t;
+        
+        for (int x = 0; x < mXTileCount; x++) {
+        	for (int y = 0; y < mYTileCount; y++) {
+        		mTileGrid[x][y] = new Tile(x, y);
+        	}
+        }
+        
+        for (int x = 0; x < mXTileCount; x++) {
+        	for (int y = 0; y < mYTileCount; y++) {
+        		t = findTile(x,y);
+        		t.setAdjacents(getAbove(t), getBelow(t), getLeft(t), getRight(t));
+        	}
+        }
+    }
+    
+    /**
+     * Resets the internal array of Bitmaps used for drawing tiles
+     * 
+     * @param tilecount max number of tiles to be inserted
+     */
+    protected void resetTiles(int tilecount) {
+    	mTileArray = new Bitmap[tilecount];
+    }
+    
+    /**
+     * Find a Tile on the board with given coordinates
+     * 
+     * @param x X position
+     * @param y Y position
+     * @return Tile found at specified location
+     */
+    protected Tile findTile(int x, int y) {
+    	try {
+    		return mTileGrid[x][y];
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		Log.w(TAG + ":findTile(" + x + "," + y + ")", e.toString());
+    		return null;
+    	}
+    }
+    
+    
+    /**
+     * Checks if a Tile's color is BLANK
+     * @param x
+     * @param y
+     * @return true if BLANK. false otherwise.
+     */
+    protected boolean tileIsBlank(int x, int y) {
+    	return (findTile(x, y).getColor() == Color.BLANK);
+    }
+        
+    /**
+     * Check if a row has at least one non-BLANK Tile in it
+     * @param row
+     * @return true if there is a filled tile in given row. <br>
+     *         false if the row has only BLANKs 
+     */
+    protected boolean rowHasTile(int row) {
+    	for (int x = 0; x < mXTileCount; x++){
+    		if (!tileIsBlank(x, row)) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
+    /**
+     * Checks if there is at least one BLANK tile somewhere below 
+     * the provided Tile coordinates
+     * 
+     * @param col
+     * @param y
+     * @return true if there is a BLANK below the provided Tile coordinates <br>
+     *         false if a BLANK was not found 
+     */
+    protected boolean emptyBelowHere(int column, int y) {
+    	//no need to examine the first tile, it should be filled.
+    	for (y += 1; y < mYTileCount; y++) {
+    		if  (tileIsBlank(column, y)) {
+    			return true;
+    		}
+    	}
+    	    	
+    	return false;
+    }
+    
+
+    /**
+     * Sets all Tiles on the board to BLANK
+     */
+    protected void clearAllTiles() {
+        for (int x = 0; x < mXTileCount; x++) {
+            for (int y = 0; y < mYTileCount; y++) {
+            	mTileGrid[x][y].setColor(Color.BLANK);
+            }
+        }
+    }
+    
+    
+    /***************** End Protected Methods ********************/
+    
+
 }
