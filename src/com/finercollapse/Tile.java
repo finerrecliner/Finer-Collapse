@@ -107,7 +107,11 @@ public class Tile {
     public int getYOffset() { return yOffset; }
     public Color getColor() { return color; }
     public BFS getBFSStatus() { return BFSStatus; }
-
+    public Tile getUp() { return up; }
+    public Tile getDown() { return down; }
+    public Tile getLeft() { return left; }
+    public Tile getRight() { return right; }
+    public Tile[] getAdj() { return new Tile[]{up, down, left, right}; }
     
     /* modifiers */
     public void setColor(Color c) { color = c; }

@@ -365,9 +365,9 @@ public class GameView extends TileView {
      */
     private void setMatchingNeighbors(Tile source, Color color) {
     	Queue<Tile> queue = new LinkedList<Tile>();
-    	Tile[] adj = new Tile[4]; 
+    	Tile[] adj; 
     	
-    	/* initialize */
+    	/* initialize for breadth first search */
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
     				Tile current = findTile(x, y);
@@ -381,13 +381,9 @@ public class GameView extends TileView {
     	
     	while (!queue.isEmpty()) {
     		Tile current = queue.poll(); //return head and remove from queue
+    		adj = current.getAdj();
     		
-    		adj[0] = getAbove(current); //TODO not needed anymore. each tile knows its neighbors
-    		adj[1] = getBelow(current);
-    		adj[2] = getRight(current);
-    		adj[3] = getLeft (current);
-    		
-    		//for each adjacent Tile
+    		//discover more matching Tiles
     		for (Tile a : adj) {
     			if (a != null && 
     				a.getBFSStatus() == Tile.BFS.UNDISCOVERED &&
@@ -396,6 +392,7 @@ public class GameView extends TileView {
 	    				queue.add(a);
     			}
     		}
+    		
     		//what to do with each Tile Discovered
     		current.setColor(color);
     		current.setBFSStatus(Tile.BFS.HANDLED);
