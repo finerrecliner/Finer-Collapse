@@ -431,7 +431,7 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount - 1; y++) {
     			Tile current = findTile(x,y);
-    			Tile below = getBelow(current);
+    			Tile below = current.getDown();
     			current.setColor(below.getColor());
     		}
     	}

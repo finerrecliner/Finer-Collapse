@@ -105,46 +105,7 @@ public class TileView extends View {
         mTileArray[c.ordinal()] = bitmap;
     }
     
-    /* 0,0 is at upper left */
-    public Tile getAbove(Tile t) {
-    	try {
-    		return findTile(t.getX(), t.getY() - 1);
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-    		return null;
-    	}
-    }
-    
-    public Tile getBelow(Tile t, int i) {
-    	try {
-    		return findTile(t.getX(), t.getY() + i);
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-    		return null;
-    	}
-    }
-    
-    public Tile getBelow(Tile t) {
-    	return getBelow(t,1);
-    }
-    
-    public Tile getRight(Tile t) {
-    	try {
-    		return findTile(t.getX() + 1, t.getY());
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-    		return null;
-    	}
-    }
 
-    public Tile getLeft(Tile t) {
-    	try {
-    		return findTile(t.getX() - 1, t.getY());
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-    		return null;
-    	}
-    }
 
     /**
      * Debug method to print a string representation of the current
@@ -222,7 +183,10 @@ public class TileView extends View {
         for (int x = 0; x < mXTileCount; x++) {
         	for (int y = 0; y < mYTileCount; y++) {
         		t = findTile(x,y);
-        		t.setAdjacents(getAbove(t), getBelow(t), getLeft(t), getRight(t));
+        		t.setAdjacents(getNearbyTile(t,  0, -1),  //up
+        					   getNearbyTile(t,  0,  1),  //down
+        					   getNearbyTile(t, -1,  0),  //left
+        					   getNearbyTile(t,  1,  0)); //right
         	}
         }
     }
@@ -312,8 +276,31 @@ public class TileView extends View {
         }
     }
     
-    
     /***************** End Protected Methods ********************/
+    
+    
+    /********************* Private Methods **********************/
+    /**
+     * Find a Tile that is some distance away from a Tile you 
+     * already know about
+     * 
+     * @param source Starting Tile
+     * @param xDistance number of horizontal Tiles away from Source. 
+     *        Enter a positive number to move right; negative to move left
+     * @param yDistance number of veritical Tiles away from Source.
+     *        Enter a positive number to move down; negative to move up
+     * @return Tile you landed on, or null if you went out of bounds
+     */
+    private Tile getNearbyTile(Tile source, int xDistance, int yDistance) {
+    	try {
+    		return findTile(source.getX() + xDistance, source.getY() + yDistance);
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		return null;
+    	}
+    }
+    
+    /****************** End Private Methods ********************/
     
 
 }
