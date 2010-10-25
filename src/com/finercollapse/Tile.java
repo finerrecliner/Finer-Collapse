@@ -138,8 +138,8 @@ public class Tile {
      * Update this tile's Offsets, so when the screen is redrawn, 
      * it will have appeared to have moved positions
      * @param distance how far to move
-     * @return true if done moving one space <br>
-     *         false if it has not reached its final destination yet
+     * @return true if there is nothing to animate <br>
+     *         false if it is still moving
      */
     public boolean animate(int distance) {
     	switch (animDirection) {
@@ -159,8 +159,8 @@ public class Tile {
     /**
      * Moves a Tile up a little bit per redraw.
      * @param height number of pixels to move in complete animation
-     * @return True when it reaches it final position. <br> 
-     * 		   False if there is more to animate
+     * @return True when there is more to animate. <br> 
+     * 		   False if there is nothing to animate
      */
     public boolean animateUp(int height) {
     		int offset = 4; //TODO magic number
@@ -175,10 +175,10 @@ public class Tile {
 	    			color = Color.BLANK;
 	    		}
 	    		resetOffset();
-	    		return true;
+	    		return false;
 	    	} else {
 	    		yOffset -= offset; 
-	    		return false;
+	    		return true;
 	    	}
     }    
     
@@ -195,7 +195,7 @@ public class Tile {
 	    	if (yOffset + offset >= height) {
 	    		animDirection = AnimDirection.NONE;
 	    		down.setColor(color);
-	    		color = up.getColor(); //TODO see up()
+	    		color = up.getColor();
 	    		resetOffset();
 	    		return true;
 	    	} else {
@@ -229,6 +229,7 @@ public class Tile {
         y = newY;
         xOffset = 0;
         yOffset = 0;
+        animDirection = AnimDirection.NONE;
     }
     
     /***************** End Private Methods *********************/

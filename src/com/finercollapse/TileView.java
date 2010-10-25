@@ -152,6 +152,19 @@ public class TileView extends View {
 		return super.onTouchEvent(event);
 	}
     
+    @Override
+    public String toString() {
+    	String buffer = ""; 
+    	
+    	for (int y = 0; y < mYTileCount; y++) {
+    		for (int x = 0; x < mXTileCount; x++) {
+            	buffer += mTileGrid[x][y].getColor().getChar() + " ";
+            }
+            buffer += "\n";
+        }
+    	buffer += "---------------\n"; //TODO magic number of -'s
+    	return buffer;
+    }
     
     
     /******************* End Public Methods *********************/

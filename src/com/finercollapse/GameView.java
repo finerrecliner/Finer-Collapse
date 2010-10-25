@@ -42,23 +42,17 @@ public class GameView extends TileView {
     /**
      * Number of milliseconds between screen redraws
      */
-    private long mDelay = 40;    
+    private long mDelay = 20;    
 
     /**
      * Current state of the board
      */
     private int mState = READY;
     
-	/**
-	 * Used to know which Tiles need to update their position during this screen redraw
-	 */
-	private ConcurrentLinkedQueue<Tile> mAnimating = new ConcurrentLinkedQueue<Tile>(); //TODO can we remove, and just ask EVERY Tile, if it wants to animate?
-    
     /**
      * Test shown to the user in some run states
      */
     private TextView mStatusText;
-
     
     /**
      * Create a simple handler to be able to schedule method calls in the near future.
@@ -71,7 +65,7 @@ public class GameView extends TileView {
     private final Runnable mNewRow = new Runnable() {
     	public void run() {
     		setState(NEW_ROW);
-    		newRow();
+    		newRowStatic();
     	}
     };
     
@@ -106,8 +100,6 @@ public class GameView extends TileView {
     };
         
     /*************** End Private Attributes *******************/
-    
-    
     
     
     /********************* Structures ***************************/
@@ -150,28 +142,27 @@ public class GameView extends TileView {
     	
     	@Override
     	public void run() {
-    		boolean isDone;
+    		boolean someoneIsAnimating;
     		
     		/* infinite loop */
-    		while (true) {
-    			if (!mAnimating.isEmpty()) {
-	 				//for each Tile in the Queue
-		        	for (Tile current : mAnimating) {
-	
+    		while (true) { 			
+    			someoneIsAnimating = false;
+    			
+    			//check every Tile for animations
+    			for (int x = 0; x < mXTileCount; x++) {
+    	    		for (int y = mYTileCount-1; y >= 0; y--) {
+    					Tile current = findTile(x,y);
+    			
 		        		// try to animate current Tile
-		        		isDone = current.animate(mTileSize);
-	            		
-	            		if (isDone) {
-	            			mAnimating.remove(current);
-	            		}
+		        		someoneIsAnimating |= current.animate(mTileSize);		
 		        	}
-		        	
-		        	//ran out of stuff to animate, do next step 
-		        	if (mAnimating.isEmpty()) {
-		        		doNext();
-		        	}
-		        	
     			}
+		        	
+	        	//ran out of stuff to animate, do next step 
+	        	if (!someoneIsAnimating) {
+	        		doNext();
+	        	}
+		        	
 	        	mHandler.post(mRedraw);      //redraw screen    
 	        	SystemClock.sleep(mDelay);   //sleep
     		}
@@ -336,6 +327,7 @@ public class GameView extends TileView {
         loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
         
         // spawn a child thread to handle animations
+        //SystemClock.sleep(2 * 1000);
         Animator a = new Animator();
         a.start();
     }
@@ -449,7 +441,6 @@ public class GameView extends TileView {
     			if (current.getColor() != Color.BLANK) {
 	    			current.modYOffset(mTileSize);
 	    			current.setAnimDirection(AnimDirection.UP);
-	    			mAnimating.add(current);
     			}
     		}
     	}
@@ -472,7 +463,6 @@ public class GameView extends TileView {
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = mYTileCount-2; y >= 0; y--) {
     			if (!tileIsBlank(x, y) && emptyBelowHere(x, y)) {
-    				mAnimating.add(findTile(x,y));
     				findTile(x,y).setAnimDirection(AnimDirection.DOWN);
     				retval = true;
     			}
