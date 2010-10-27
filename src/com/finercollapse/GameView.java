@@ -65,7 +65,7 @@ public class GameView extends TileView {
     private final Runnable mNewRow = new Runnable() {
     	public void run() {
     		setState(NEW_ROW);
-    		newRowStatic();
+    		newRow();
     	}
     };
     
@@ -145,7 +145,7 @@ public class GameView extends TileView {
     		boolean someoneIsAnimating;
     		
     		/* infinite loop */
-    		while (true) { 			
+    		while (true) {    				
     			someoneIsAnimating = false;
     			
     			//check every Tile for animations
@@ -162,7 +162,6 @@ public class GameView extends TileView {
 	        	if (!someoneIsAnimating) {
 	        		doNext();
 	        	}
-		        	
 	        	mHandler.post(mRedraw);      //redraw screen    
 	        	SystemClock.sleep(mDelay);   //sleep
     		}
@@ -269,6 +268,9 @@ public class GameView extends TileView {
     	
     	if (MotionEvent.ACTION_DOWN == action) {
     	
+    		/* figure out what Tile was clicked on using coordinates 
+    		 * from touch Event
+    		 */
 	        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
 	        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
 	        
@@ -288,7 +290,7 @@ public class GameView extends TileView {
 		        	
 		        	// if nothing to animate from this click, don't forget to do this stuff anyways!
 		        	if (!willAnim) {
-		        		mHandler.post(mPostUserClick);
+		        		mHandler.post(mNewRow);
 		        	}
 	        	}
 	        }
@@ -439,7 +441,7 @@ public class GameView extends TileView {
     			Tile current = findTile(x,y);
     			
     			if (current.getColor() != Color.BLANK) {
-	    			current.modYOffset(mTileSize);
+	    			current.modYOffset(mTileSize); //TODO move into setAnimDirection function?
 	    			current.setAnimDirection(AnimDirection.UP);
     			}
     		}

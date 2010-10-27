@@ -157,10 +157,11 @@ public class Tile {
     }
     
     /**
-     * Moves a Tile up a little bit per redraw.
+     * Moves a Tile up a little bit per redraw. This animation 
+     * expects that yOffset has already been set
      * @param height number of pixels to move in complete animation
-     * @return True when there is more to animate. <br> 
-     * 		   False if there is nothing to animate
+     * @return True when it reaches it final position. <br> 
+     * 		   False if there is more to animate
      */
     public boolean animateUp(int height) {
     		int offset = 4; //TODO magic number
@@ -168,17 +169,11 @@ public class Tile {
     		/* animation is complete */
 	    	if (yOffset - offset <= 0) {
 	    		animDirection = AnimDirection.NONE;
-	    		up.setColor(color);
-	    		if (down != null) {
-	    			color = down.getColor();
-	    		} else {
-	    			color = Color.BLANK;
-	    		}
 	    		resetOffset();
-	    		return false;
+	    		return true;
 	    	} else {
 	    		yOffset -= offset; 
-	    		return true;
+	    		return false;
 	    	}
     }    
     
@@ -195,7 +190,7 @@ public class Tile {
 	    	if (yOffset + offset >= height) {
 	    		animDirection = AnimDirection.NONE;
 	    		down.setColor(color);
-	    		color = up.getColor();
+	    		color = up.getColor(); //check it!
 	    		resetOffset();
 	    		return true;
 	    	} else {
