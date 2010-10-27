@@ -141,7 +141,6 @@ public class TileView extends View {
                 }
             }
         }
-
     }   
     
     /* (non-Javadoc)
@@ -180,8 +179,8 @@ public class TileView extends View {
         mXTileCount = (int) Math.floor(w / mTileSize);
         mYTileCount = (int) Math.floor(h / mTileSize);
 
-        mXOffset = ((w - (mTileSize * mXTileCount)) / 2);
-        mYOffset = ((h - (mTileSize * mYTileCount)) / 2);
+        mXOffset = ((w - (mTileSize * mXTileCount)) / 2);	//horizontally centered
+        mYOffset = ((h - (mTileSize * mYTileCount)));		//vertically aligned against the bottom of the view
 
         mTileGrid = new Tile[mXTileCount][mYTileCount];
         

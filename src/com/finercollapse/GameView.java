@@ -272,7 +272,7 @@ public class GameView extends TileView {
     		 * from touch Event
     		 */
 	        int x = ((int)(event.getX() + mXOffset) / mTileSize) - 1;
-	        int y = ((int)(event.getY() + mYOffset) / mTileSize) - 1;
+	        int y = ((int)(event.getY()) / mTileSize) - 1;
 	        
 	        if (x < 0 || y < 0 || x >= mXTileCount || y >= mYTileCount) {
 	        	Log.w(TAG, "user clicked out of bounds");
