@@ -6,19 +6,23 @@
 	android:layout_height="fill_parent">
 	
 	<RelativeLayout
+		android:id="@+id/Game" 
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent">
-		<TextView  
+
+		<TextView
+			android:id="@+id/Stats" 
 		    android:layout_width="fill_parent" 
 		    android:layout_height="wrap_content" 
 		    android:text="Score = 0"/>
 		    
-		<FrameLayout  
+		<FrameLayout
+			android:id="@+id/Board_Layout" 
 		    android:layout_width="fill_parent" 
 		    android:layout_height="wrap_content" >
 		    
 			<com.finercollapse.GameView
-				android:id="@+id/board"
+				android:id="@+id/Board"
 				android:layout_width="fill_parent"
 			    android:layout_height="wrap_content"
 			    app:tileSize="12"/>
@@ -28,20 +32,51 @@
 	</RelativeLayout>
 	
 	<RelativeLayout
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent" >
+		android:id="@+id/Text_Layout" 
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent" >
 			
-			<TextView
-			 	android:id="@+id/text"
-				android:text="@string/snake_layout_text_text"
-				android:visibility="visible"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_centerInParent="true"
-				android:gravity="center_horizontal"
-				android:textColor="#ff8888ff"
-				android:textSize="24sp"/>
+		<TextView
+		 	android:id="@+id/Text"
+			android:text="@string/snake_layout_text_text"
+			android:visibility="invisible"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:gravity="center_horizontal"
+			android:textColor="#ff8888ff"
+			android:textSize="24sp"/>
 	</RelativeLayout>
                 
-                
+	<RelativeLayout 
+		android:id="@+id/Main_Menu" 
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent">
+		
+		<LinearLayout 
+			android:id="@+id/Button_List" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content"
+			android:gravity="center_horizontal">
+			
+			<Button 
+			android:text="Easy" 
+			android:id="@+id/Easy" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content"
+			android:gravity="center_horizontal">
+			</Button>
+			
+			<Button 
+			android:text="Medium" 
+			android:id="@+id/Medium" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content"
+			android:gravity="center_horizontal">
+			</Button>
+			
+		</LinearLayout>
+	</RelativeLayout>
+
+
 </FrameLayout>

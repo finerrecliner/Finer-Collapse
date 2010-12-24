@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -47,12 +48,17 @@ public class GameView extends TileView {
     /**
      * Current state of the board
      */
-    private int mState = READY;
+    private States mState = States.READY;
     
     /**
      * Test shown to the user in some run states
      */
-    private TextView mStatusText;
+    //private RelativeLayout mStatusText;
+    
+    /**
+     * Test shown to the user in some run states
+     */
+    private RelativeLayout mMainMenu;
     
     /**
      * Create a simple handler to be able to schedule method calls in the near future.
@@ -64,7 +70,7 @@ public class GameView extends TileView {
      */
     private final Runnable mNewRow = new Runnable() {
     	public void run() {
-    		setState(NEW_ROW);
+    		setState(States.NEW_ROW);
     		newRow();
     	}
     };
@@ -86,7 +92,7 @@ public class GameView extends TileView {
  	    	
  	    	//check if any tiles are filled in top row
  	    	if (rowHasTile(TOP_ROW)) {
- 	    		setState(LOSE);
+ 	    		setState(States.LOSE);
  	    		return;
  	    	}
  	    	
@@ -95,7 +101,7 @@ public class GameView extends TileView {
  	    		//TODO warning by vibrate or screen alert?
  	    	}
  	    	
- 	    	setState(RUNNING);
+ 	    	setState(States.RUNNING);
     	}
     };
         
@@ -169,16 +175,18 @@ public class GameView extends TileView {
     }
     
     /**
-     * Current mode of application: READY to run, RUNNING, or you have already
-     * lost. static final ints are used instead of an enum for performance
-     * reasons.
-     */
-    public static final int READY = 1;
-    public static final int RUNNING = 2;
-    public static final int LOSE = 3;
-    public static final int ANIMATE = 4;
-    public static final int DROP = 5;
-    public static final int NEW_ROW = 6;
+     * Current state of application: READY to run, RUNNING, or you have already
+     * lost. 
+     */    
+    public enum States {
+    	READY,
+    	RUNNING,
+    	PAUSE,
+    	LOSE,
+    	ANIMATE,
+    	DROP,
+    	NEW_ROW,    	
+    }
     
     /****************** End Structures ***********************/
     
@@ -201,32 +209,50 @@ public class GameView extends TileView {
      * 
      * @param newState
      */
-    public void setState(int newState) {
-        int oldMode = mState;
+    public void setState(States newState) {
+        States oldMode = mState;
         mState = newState;
 
-        if (newState == RUNNING && oldMode != RUNNING) {
-            mStatusText.setVisibility(View.INVISIBLE);
+        if (newState == States.RUNNING && oldMode != States.RUNNING) {
+            //mStatusText.setVisibility(View.INVISIBLE);
+            mMainMenu.setVisibility(View.INVISIBLE);
             return;
         }
 
         Resources res = getContext().getResources();
         CharSequence str = "";
-        if (newState == READY) {
-            str = res.getText(R.string.mode_ready);
+        if (newState == States.READY) {
+            //str = res.getText(R.string.mode_ready);
+        	mMainMenu.setVisibility(View.VISIBLE);
         }
-        if (newState == LOSE) {
+        if (newState == States.PAUSE) {
             str = res.getString(R.string.mode_lose_prefix) + " " + mScore
                   + res.getString(R.string.mode_lose_suffix);
             clearAllTiles();
         }
-        if (newState == DROP || newState == NEW_ROW) {
+        if (newState == States.DROP || newState == States.NEW_ROW) {
         	return;
         }
 
-        mStatusText.setText(str);
-        mStatusText.setVisibility(View.VISIBLE);
+//        mStatusText.setText(str);
+//        mStatusText.setVisibility(View.VISIBLE);
     }
+    
+
+    /**
+     * Prepare the board for a new round of the game
+     */
+    public void initNewGame() {
+    	clearAllTiles();
+
+    	//add prefilled lines
+    	for (int i = 0; i < 4; i++){  //TODO magic number
+    		newRowStatic(); //TODO i think I can move the method inline here...
+    	}
+    	
+        mScore = 0;
+    }
+    
     
     /*
      * (non-Javadoc)
@@ -236,18 +262,18 @@ public class GameView extends TileView {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
 
-        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            if (mState == READY | mState == LOSE) {
-                /*
-                 * At the beginning of the game, or the end of a previous one,
-                 * we should prep the board.
-                 */
-                initNewGame();
-                setState(RUNNING);
-            }
-            
-            return true;
-        }
+//        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+//            if (mState == States.READY | mState == States.LOSE) {
+//                /*
+//                 * At the beginning of the game, or the end of a previous one,
+//                 * we should prep the board.
+//                 */
+//                initNewGame();
+//                setState(States.RUNNING);
+//            }
+//            
+//            return true;
+//        }
         
         // this is for debugging. TODO remove
         if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
@@ -279,11 +305,11 @@ public class GameView extends TileView {
 	        	return true;
 	        }
 	        
-	        if (mState == RUNNING) {
+	        if (mState == States.RUNNING) {
 	        	selected = findTile(x,y);
 	        	//check that the tile clicked was not blank
 	        	if (selected.getColor() != Color.BLANK) {
-	        		setState(DROP);
+	        		setState(States.DROP);
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
 		        	setMatchingNeighbors(selected, Color.BLANK);
 		        	willAnim = findTilesToAnimate();
@@ -305,9 +331,21 @@ public class GameView extends TileView {
      * 
      * @param newView
      */
-    public void setTextView(TextView newView) {
-        mStatusText = newView;
+//    public void setTextView(TextView newView) {
+//        mStatusText = newView;
+//    }
+    
+    /**
+     * Sets the Main Menu View that will be used to provide access to start 
+     * a game, or open the help page, or see High Scores, etc.
+     * 
+     * @param newView
+     */
+    public void setMainMenu(RelativeLayout newLayout) {
+        mMainMenu = newLayout;
     }
+
+    
 
     /***************** End Public Methods *********************/
     
@@ -329,24 +367,8 @@ public class GameView extends TileView {
         loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
         
         // spawn a child thread to handle animations
-        //SystemClock.sleep(2 * 1000);
         Animator a = new Animator();
         a.start();
-    }
-    
-
-    /**
-     * Prepare the board for a new round of the game
-     */
-    private void initNewGame() {
-    	clearAllTiles();
-
-    	//add prefilled lines
-    	for (int i = 0; i < 4; i++){  //TODO magic number
-    		newRowStatic(); //TODO i think I can move the method inline here...
-    	}
-    	
-        mScore = 0;
     }
 
     /**

@@ -1,7 +1,12 @@
 package com.finercollapse;
 
+import com.finercollapse.GameView.States;
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class FinerCollapse extends Activity {
@@ -16,10 +21,28 @@ public class FinerCollapse extends Activity {
 
         setContentView(R.layout.main);
         
-        gameView = (GameView) findViewById(R.id.board);
-        gameView.setTextView((TextView) findViewById(R.id.text));
+        /* setup buttons on Main Menu */
+        final Button easyButton = (Button) findViewById(R.id.Easy);
+        easyButton.setOnClickListener(buttonListener);
         
-        gameView.setState(GameView.READY);
+        
+        gameView = (GameView) findViewById(R.id.Board);
+        //gameView.setTextView((TextView) findViewById(R.id.Text));
+        gameView.setMainMenu((RelativeLayout) findViewById(R.id.Main_Menu));
+        
+        gameView.setState(GameView.States.READY);
         
     }
+    
+    private OnClickListener buttonListener = new OnClickListener() {
+		
+		public void onClick(View v) {
+			int difficulty = v.getId();
+			
+			gameView.initNewGame();
+			gameView.setState(States.RUNNING);
+		}
+
+	};
+    
 }

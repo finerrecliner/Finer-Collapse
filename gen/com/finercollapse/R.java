@@ -29,8 +29,16 @@ containing a value of this type.
         public static final int yellowstar=0x7f020004;
     }
     public static final class id {
-        public static final int board=0x7f060000;
-        public static final int text=0x7f060001;
+        public static final int Board=0x7f060003;
+        public static final int Board_Layout=0x7f060002;
+        public static final int Button_List=0x7f060007;
+        public static final int Easy=0x7f060008;
+        public static final int Game=0x7f060000;
+        public static final int Main_Menu=0x7f060006;
+        public static final int Medium=0x7f060009;
+        public static final int Stats=0x7f060001;
+        public static final int Text=0x7f060005;
+        public static final int Text_Layout=0x7f060004;
     }
     public static final class layout {
         public static final int main=0x7f030000;
