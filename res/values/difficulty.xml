@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Difficulty profiles -->
+<resources>
+	<integer-array name="easy">
+		<item>2</item>		<!-- prefilled rows -->
+		<item>3</item>		<!-- number of colors available for use -->
+		<item>10</item>		<!-- new row wait time (seconds) -->
+	</integer-array>
+	
+	<integer-array name="medium">
+		<item>3</item>		<!-- prefilled rows -->
+		<item>3</item>		<!-- number of colors available for use -->
+		<item>10</item>		<!-- new row wait time (seconds) -->
+	</integer-array>
+	
+	<integer-array name="hard">
+		<item>4</item>		<!-- prefilled rows -->
+		<item>3</item>		<!-- number of colors available for use -->
+		<item>10</item>		<!-- new row wait time (seconds) -->
+	</integer-array>
+</resources>
