@@ -1,7 +1,6 @@
 package com.finercollapse;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.finercollapse.Tile.AnimDirection;
 import com.finercollapse.Constants.*;
@@ -15,6 +14,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -38,7 +38,7 @@ public class GameView extends TileView {
     /**
      * Used to track user's score per game round 
      */
-    private long mScore = 0;
+    private int mScore = 0;
 
     /**
      * Number of milliseconds between screen redraws
@@ -56,14 +56,24 @@ public class GameView extends TileView {
     private Settings mSettings;
     
     /**
-     * Test shown to the user in some run states
+     * Shown to user when they lose the game
      */
-    //private RelativeLayout mStatusText;
+    private LinearLayout mLoseView;
     
     /**
-     * Test shown to the user in some run states
+     * displays the Main Menu
      */
-    private RelativeLayout mMainMenu;
+    private LinearLayout mMainMenu;
+    
+    /**
+     * Score at top of screen while playing
+     */
+    private TextView mScoreView;
+    
+    /**
+     * Animation thread
+     */
+    private Animator mAnimator;
     
     /**
      * Create a simple handler to be able to schedule method calls in the near future.
@@ -86,6 +96,7 @@ public class GameView extends TileView {
     private final Runnable mRedraw = new Runnable() {
     	public void run() {
     		GameView.this.invalidate();
+    		mScoreView.invalidate();
     	}
     };
     
@@ -101,7 +112,7 @@ public class GameView extends TileView {
  	    		return;
  	    	}
  	    	
- 	    	if (rowHasTile(SECOND_ROW)) {        	//TODO magic number
+ 	    	if (rowHasTile(SECOND_ROW)) {
  	    		Log.i(TAG, "user warning: about to lose!");
  	    		//TODO warning by vibrate or screen alert?
  	    	}
@@ -151,12 +162,19 @@ public class GameView extends TileView {
     		}
     	}
     	
+    	/**
+    	 * stops the Animator thread
+    	 */
+    	public void exit() {
+    		mAnimator = null;
+    	}
+    	
     	@Override
     	public void run() {
     		boolean someoneIsAnimating;
     		
     		/* infinite loop */
-    		while (true) {    				
+    		while (mAnimator != null) {    				
     			someoneIsAnimating = false;
     			
     			//check every Tile for animations
@@ -173,15 +191,16 @@ public class GameView extends TileView {
 	        	if (!someoneIsAnimating) {
 	        		doNext();
 	        	}
+	        	
 	        	mHandler.post(mRedraw);      //redraw screen    
 	        	SystemClock.sleep(mDelay);   //sleep
     		}
+    		return; //thread is stopped
     	}
     }
     
     /**
-     * Current state of application: READY to run, RUNNING, or you have already
-     * lost. 
+     * Current state of application: READY to run, RUNNING, etc.
      */    
     public enum States {
     	READY,
@@ -209,32 +228,45 @@ public class GameView extends TileView {
    }
     
     /**
-     * Updates the current state of the application (RUNNING or PAUSED or the like)
-     * as well as sets the visibility of textview for notification
+     * Updates the current state of the application (RUNNING or PAUSED, etc)
      * 
      * @param newState
      */
     public void setState(States newState) {
-        States oldMode = mState;
+        Resources res = getResources(); //TODO make a member
+        String str;
+    	//States oldState = mState;
         mState = newState;
 
-        if (newState == States.RUNNING && oldMode != States.RUNNING) {
-            //mStatusText.setVisibility(View.INVISIBLE);
+        /* Main Menu state */
+        if (newState == States.READY) {
+        	mMainMenu.setVisibility(View.VISIBLE);
+        	mLoseView.setVisibility(View.INVISIBLE);
+        	this.setVisibility(INVISIBLE);
+        }
+        
+        if (newState == States.RUNNING) {
             mMainMenu.setVisibility(View.INVISIBLE);
+            this.setVisibility(VISIBLE);
             return;
         }
-
-        Resources res = getContext().getResources();
-        CharSequence str = "";
-        if (newState == States.READY) {
-            //str = res.getText(R.string.mode_ready);
-        	mMainMenu.setVisibility(View.VISIBLE);
+        
+        if (newState == States.LOSE) {
+        	this.setVisibility(INVISIBLE);
+        	mAnimator.exit();
+            str = res.getString(R.string.mode_lose_prefix) + " " + mScore;
+            TextView textView = (TextView) mLoseView.findViewById(R.id.Text);
+            textView.setText(str);
+            mLoseView.setVisibility(VISIBLE);
+            return;
         }
+        
         if (newState == States.PAUSE) {
-            str = res.getString(R.string.mode_lose_prefix) + " " + mScore
-                  + res.getString(R.string.mode_lose_suffix);
-            clearAllTiles();
+        	this.setVisibility(INVISIBLE);
+        	str = res.getString(R.string.mode_pause);
+            return;
         }
+        
         if (newState == States.DROP || newState == States.NEW_ROW) {
         	return;
         }
@@ -261,33 +293,11 @@ public class GameView extends TileView {
     	
         mScore = 0;
         
-        // spawn a child thread to handle animations
-        Animator a = new Animator();
-        a.start();
+        // spawn a child thread to handle animations in the background
+        mAnimator = new Animator();
+        mAnimator.start();
         
 		setState(States.RUNNING);
-        
-    }
-    
-    private void setSettings(Constants.Difficulty difficulty) {
-    	Resources res = getResources();
-    	int[] items; 
-    	
-    	switch (difficulty) {
-    	case EASY:
-    		items = res.getIntArray(R.array.easy);
-    		break;
-    	case MEDIUM:
-    		items = res.getIntArray(R.array.medium);
-    		break;
-    	default:
-    		Log.e(TAG, ": Unknown Difficulty level selected. Defaulting to EASY");
-    		items = res.getIntArray(R.array.easy);
-    		break;
-    	}
-    	
-    	mSettings = new Settings(difficulty, items[0], items[1], items[2]);
-    	
     }
     
     
@@ -349,15 +359,18 @@ public class GameView extends TileView {
     	return true;
 	}
     
+    
+    //TODO can be abstracted into setView(mView, newLayout)
+    
     /**
      * Sets the TextView that will be used to give information (such as "Game
      * Over" to the user.
      * 
      * @param newView
      */
-//    public void setTextView(TextView newView) {
-//        mStatusText = newView;
-//    }
+    public void setLoseView(LinearLayout newLayout) {
+        mLoseView = newLayout;
+    }
     
     /**
      * Sets the Main Menu View that will be used to provide access to start 
@@ -365,10 +378,14 @@ public class GameView extends TileView {
      * 
      * @param newView
      */
-    public void setMainMenu(RelativeLayout newLayout) {
+    public void setMainMenu(LinearLayout newLayout) {
         mMainMenu = newLayout;
     }
 
+    //TODO documentation
+    public void setScoreView(TextView newView) {
+    	mScoreView = newView;
+    }
     
 
     /***************** End Public Methods *********************/
@@ -382,7 +399,7 @@ public class GameView extends TileView {
     private void initGameView() {
         setFocusable(true);
 
-        Resources r = this.getContext().getResources();
+        Resources r = getResources();
         
         resetTiles(Color.getSize());
         loadTile(Color.RED, r.getDrawable(R.drawable.redstar));
@@ -391,6 +408,34 @@ public class GameView extends TileView {
         loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
         
     }
+    
+    
+    /**
+     * populate Settings with appropriate difficulty profile
+     * 
+     * @param difficulty
+     */
+    private void setSettings(Constants.Difficulty difficulty) {
+    	Resources res = getResources();
+    	int[] items; 
+    	
+    	switch (difficulty) {
+    	case EASY:
+    		items = res.getIntArray(R.array.easy);
+    		break;
+    	case MEDIUM:
+    		items = res.getIntArray(R.array.medium);
+    		break;
+    	default:
+    		Log.e(TAG, ": Unknown Difficulty level selected. Defaulting to EASY");
+    		items = res.getIntArray(R.array.easy);
+    		break;
+    	}
+    	
+    	mSettings = new Settings(difficulty, items[0], items[1], items[2]);
+    	
+    }
+    
 
     /**
      * Find all touching tiles that are the same color using
@@ -433,6 +478,7 @@ public class GameView extends TileView {
     		//what to do with each Tile Discovered
     		current.setColor(color);
     		current.setBFSStatus(Tile.BFS.HANDLED);
+    		incScore(10);
     	}
     	return;
     }
@@ -489,8 +535,6 @@ public class GameView extends TileView {
     			}
     		}
     	}
-
-    	
     }
     
     /**
@@ -516,6 +560,20 @@ public class GameView extends TileView {
     	
     	return retval;
     }
+    
+    /**
+     * increment the score
+     * 
+     * @param points number of points to add to current score. 
+     * negative values are acceptable.
+     */
+    private void incScore(int points) {
+    	Resources res = getResources(); 
+    	String str = res.getString(R.string.score_prefix) + mScore;
+    	mScore += points;
+    	mScoreView.setText(str);
+    }
+    
     
     /***************** End Private Methods *********************/
     

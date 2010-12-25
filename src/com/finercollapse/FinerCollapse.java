@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class FinerCollapse extends Activity {
@@ -22,39 +22,44 @@ public class FinerCollapse extends Activity {
         setContentView(R.layout.main);
         
         /* setup buttons on Main Menu */
-        final Button easyButton = (Button) findViewById(R.id.Easy);
-        final Button medButton = (Button) findViewById(R.id.Medium);
+        final Button easyButton = (Button) findViewById(R.id.easyBtn);
+        final Button medButton = (Button) findViewById(R.id.medBtn);
+        final Button loseButton = (Button) findViewById(R.id.LoseBtn);
         
-        easyButton.setOnClickListener(buttonListener);
-        medButton.setOnClickListener(buttonListener);
+        easyButton.setOnClickListener(startGame);
+        medButton.setOnClickListener(startGame);
+        loseButton.setOnClickListener(goToMainMenu);
         
         gameView = (GameView) findViewById(R.id.Board);
-        //gameView.setTextView((TextView) findViewById(R.id.Text));
-        gameView.setMainMenu((RelativeLayout) findViewById(R.id.Main_Menu));
+        gameView.setLoseView((LinearLayout) findViewById(R.id.LoseView));
+        gameView.setMainMenu((LinearLayout) findViewById(R.id.Main_Menu));
+        gameView.setScoreView((TextView) findViewById(R.id.Score));
         
-        gameView.setState(GameView.States.READY);
+        gameView.setState(States.READY);
         
     }
     
-    private OnClickListener buttonListener = new OnClickListener() {
-		
+    private OnClickListener startGame = new OnClickListener() {
 		public void onClick(View v) {
 			int difficulty = v.getId();
 			
 			switch (difficulty) {
-			case R.id.Easy: 
+			case R.id.easyBtn: 
 				gameView.initNewGame(Constants.Difficulty.EASY);
 				break;
-			case R.id.Medium: 
+			case R.id.medBtn: 
 				gameView.initNewGame(Constants.Difficulty.MEDIUM);
 				break;
 			default:
 				return;
 			}
-			
-
 		}
-
+	};
+	
+    private OnClickListener goToMainMenu = new OnClickListener() {
+		public void onClick(View v) {			
+			gameView.setState(States.READY);
+		}
 	};
     
 }
