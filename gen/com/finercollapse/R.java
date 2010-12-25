@@ -11,6 +11,17 @@ public final class R {
     public static final class anim {
         public static final int slide_down=0x7f040000;
     }
+    public static final class array {
+        /**  new row wait time (seconds) 
+         */
+        public static final int easy=0x7f050000;
+        /**  new row wait time (seconds) 
+         */
+        public static final int hard=0x7f050002;
+        /**  new row wait time (seconds) 
+         */
+        public static final int medium=0x7f050001;
+    }
     public static final class attr {
         /** <p>Must be an integer value, such as "<code>100</code>".
 <p>This may also be a reference to a resource (in the form
@@ -29,27 +40,27 @@ containing a value of this type.
         public static final int yellowstar=0x7f020004;
     }
     public static final class id {
-        public static final int Board=0x7f060003;
-        public static final int Board_Layout=0x7f060002;
-        public static final int Button_List=0x7f060007;
-        public static final int Easy=0x7f060008;
-        public static final int Game=0x7f060000;
-        public static final int Main_Menu=0x7f060006;
-        public static final int Medium=0x7f060009;
-        public static final int Stats=0x7f060001;
-        public static final int Text=0x7f060005;
-        public static final int Text_Layout=0x7f060004;
+        public static final int Board=0x7f070003;
+        public static final int Board_Layout=0x7f070002;
+        public static final int Button_List=0x7f070007;
+        public static final int Easy=0x7f070008;
+        public static final int Game=0x7f070000;
+        public static final int Main_Menu=0x7f070006;
+        public static final int Medium=0x7f070009;
+        public static final int Stats=0x7f070001;
+        public static final int Text=0x7f070005;
+        public static final int Text_Layout=0x7f070004;
     }
     public static final class layout {
         public static final int main=0x7f030000;
     }
     public static final class string {
-        public static final int app_name=0x7f050000;
-        public static final int mode_lose_prefix=0x7f050003;
-        public static final int mode_lose_suffix=0x7f050004;
-        public static final int mode_pause=0x7f050002;
-        public static final int mode_ready=0x7f050001;
-        public static final int snake_layout_text_text=0x7f050005;
+        public static final int app_name=0x7f060000;
+        public static final int mode_lose_prefix=0x7f060003;
+        public static final int mode_lose_suffix=0x7f060004;
+        public static final int mode_pause=0x7f060002;
+        public static final int mode_ready=0x7f060001;
+        public static final int snake_layout_text_text=0x7f060005;
     }
     public static final class styleable {
         /** Attributes that can be used with a TileView.

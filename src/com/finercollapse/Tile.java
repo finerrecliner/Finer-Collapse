@@ -3,7 +3,7 @@
  */
 package com.finercollapse;
 
-import com.FinerCollapse.Constants.*;
+import com.finercollapse.Constants.*;
 
 /**
  * Represents an individual item on the game board

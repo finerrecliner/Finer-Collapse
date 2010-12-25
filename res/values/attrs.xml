@@ -17,6 +17,6 @@
 <resources>
   <declare-styleable name="TileView">
     <attr name="tileSize" format="integer" />
-  </declare-styleable>
+  </declare-styleable>  
 </resources>
 

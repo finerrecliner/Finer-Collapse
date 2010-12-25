@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.finercollapse.Tile.AnimDirection;
-import com.FinerCollapse.Constants.*;
+import com.finercollapse.Constants.*;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -49,6 +49,11 @@ public class GameView extends TileView {
      * Current state of the board
      */
     private States mState = States.READY;
+    
+    /**
+     * Settings for this game that depend on the difficulty chosen
+     */
+    private Settings mSettings;
     
     /**
      * Test shown to the user in some run states
@@ -234,6 +239,8 @@ public class GameView extends TileView {
         	return;
         }
 
+        //TODO when lose, join the Animator thread for cleanup
+        
 //        mStatusText.setText(str);
 //        mStatusText.setVisibility(View.VISIBLE);
     }
@@ -242,15 +249,45 @@ public class GameView extends TileView {
     /**
      * Prepare the board for a new round of the game
      */
-    public void initNewGame() {
+    public void initNewGame(Constants.Difficulty difficulty) {
+    	setSettings(difficulty);
+    	
     	clearAllTiles();
 
     	//add prefilled lines
-    	for (int i = 0; i < 4; i++){  //TODO magic number
+    	for (int i = 0; i < mSettings.getPrefilledRows(); i++){
     		newRowStatic(); //TODO i think I can move the method inline here...
     	}
     	
         mScore = 0;
+        
+        // spawn a child thread to handle animations
+        Animator a = new Animator();
+        a.start();
+        
+		setState(States.RUNNING);
+        
+    }
+    
+    private void setSettings(Constants.Difficulty difficulty) {
+    	Resources res = getResources();
+    	int[] items; 
+    	
+    	switch (difficulty) {
+    	case EASY:
+    		items = res.getIntArray(R.array.easy);
+    		break;
+    	case MEDIUM:
+    		items = res.getIntArray(R.array.medium);
+    		break;
+    	default:
+    		Log.e(TAG, ": Unknown Difficulty level selected. Defaulting to EASY");
+    		items = res.getIntArray(R.array.easy);
+    		break;
+    	}
+    	
+    	mSettings = new Settings(difficulty, items[0], items[1], items[2]);
+    	
     }
     
     
@@ -261,19 +298,6 @@ public class GameView extends TileView {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
-
-//        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-//            if (mState == States.READY | mState == States.LOSE) {
-//                /*
-//                 * At the beginning of the game, or the end of a previous one,
-//                 * we should prep the board.
-//                 */
-//                initNewGame();
-//                setState(States.RUNNING);
-//            }
-//            
-//            return true;
-//        }
         
         // this is for debugging. TODO remove
         if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
@@ -366,9 +390,6 @@ public class GameView extends TileView {
         loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
         loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
         
-        // spawn a child thread to handle animations
-        Animator a = new Animator();
-        a.start();
     }
 
     /**

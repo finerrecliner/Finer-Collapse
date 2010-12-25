@@ -10,7 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import com.FinerCollapse.Constants.*;
+import com.finercollapse.Constants.*;
 
 
 /**
@@ -223,7 +223,7 @@ public class TileView extends View {
     	try {
     		return mTileGrid[x][y];
     	}
-    	catch (ArrayIndexOutOfBoundsException e) {
+    	catch (Exception e) {
     		Log.w(TAG + ":findTile(" + x + "," + y + ")", e.toString());
     		return null;
     	}

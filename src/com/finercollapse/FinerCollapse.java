@@ -23,8 +23,10 @@ public class FinerCollapse extends Activity {
         
         /* setup buttons on Main Menu */
         final Button easyButton = (Button) findViewById(R.id.Easy);
-        easyButton.setOnClickListener(buttonListener);
+        final Button medButton = (Button) findViewById(R.id.Medium);
         
+        easyButton.setOnClickListener(buttonListener);
+        medButton.setOnClickListener(buttonListener);
         
         gameView = (GameView) findViewById(R.id.Board);
         //gameView.setTextView((TextView) findViewById(R.id.Text));
@@ -39,8 +41,18 @@ public class FinerCollapse extends Activity {
 		public void onClick(View v) {
 			int difficulty = v.getId();
 			
-			gameView.initNewGame();
-			gameView.setState(States.RUNNING);
+			switch (difficulty) {
+			case R.id.Easy: 
+				gameView.initNewGame(Constants.Difficulty.EASY);
+				break;
+			case R.id.Medium: 
+				gameView.initNewGame(Constants.Difficulty.MEDIUM);
+				break;
+			default:
+				return;
+			}
+			
+
 		}
 
 	};
