@@ -5,6 +5,7 @@ import java.util.*;
 import com.finercollapse.Tile.AnimDirection;
 import com.finercollapse.Constants.*;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Handler;
@@ -144,7 +145,7 @@ public class GameView extends TileView {
     			mHandler.post(mPostUserClick);
     			break;
     		default:
-    			Log.w(TAG, "Invalid Mode of GameView");
+    			//Log.w(TAG, "Invalid Mode of GameView");
     		}
     	} 	
     	
@@ -183,7 +184,11 @@ public class GameView extends TileView {
     					Tile current = findTile(x,y);
     			
 		        		// try to animate current Tile
-		        		someoneIsAnimating |= current.animate(mTileSize);		
+    					try {
+    						someoneIsAnimating |= current.animate(mTileSize);
+    					} catch (Exception e) {
+    						Log.w(TAG, e);
+    					}
 		        	}
     			}
 		        	
@@ -238,52 +243,45 @@ public class GameView extends TileView {
     	//States oldState = mState;
         mState = newState;
 
-        /* Main Menu state */
         if (newState == States.READY) {
-        	mMainMenu.setVisibility(View.VISIBLE);
-        	mLoseView.setVisibility(View.INVISIBLE);
-        	this.setVisibility(INVISIBLE);
+        	this.setVisibility(VISIBLE);
         }
         
         if (newState == States.RUNNING) {
-            mMainMenu.setVisibility(View.INVISIBLE);
             this.setVisibility(VISIBLE);
             return;
         }
         
         if (newState == States.LOSE) {
-        	this.setVisibility(INVISIBLE);
+        	//this.setVisibility(INVISIBLE);
         	mAnimator.exit();
-            str = res.getString(R.string.mode_lose_prefix) + " " + mScore;
-            TextView textView = (TextView) mLoseView.findViewById(R.id.Text);
-            textView.setText(str);
-            mLoseView.setVisibility(VISIBLE);
+//            str = res.getString(R.string.mode_lose_prefix) + " " + mScore;
+//            TextView textView = (TextView) mLoseView.findViewById(R.id.Text);
+//            textView.setText(str);
+//            mLoseView.setVisibility(VISIBLE);
+        	((Activity) getContext()).finish();
+            
             return;
         }
         
         if (newState == States.PAUSE) {
-        	this.setVisibility(INVISIBLE);
+        	//this.setVisibility(INVISIBLE);
         	str = res.getString(R.string.mode_pause);
             return;
         }
         
-        if (newState == States.DROP || newState == States.NEW_ROW) {
-        	return;
-        }
-
-        //TODO when lose, join the Animator thread for cleanup
-        
-//        mStatusText.setText(str);
-//        mStatusText.setVisibility(View.VISIBLE);
+//        if (newState == States.DROP || newState == States.NEW_ROW) {
+//        	return;
+//        }
     }
     
 
     /**
      * Prepare the board for a new round of the game
      */
-    public void initNewGame(Constants.Difficulty difficulty) {
+    public void initNewGame(Difficulty difficulty) {
     	setSettings(difficulty);
-    	
+    	setFocusable(true);    	
     	clearAllTiles();
 
     	//add prefilled lines
@@ -406,7 +404,7 @@ public class GameView extends TileView {
         loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellowstar));
         loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
         loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
-        
+            
     }
     
     
@@ -433,7 +431,6 @@ public class GameView extends TileView {
     	}
     	
     	mSettings = new Settings(difficulty, items[0], items[1], items[2]);
-    	
     }
     
 
@@ -525,6 +522,7 @@ public class GameView extends TileView {
     		findTile(x, mYTileCount - 1).setColor(color);
     	}
     	
+    	//Animate all non-BLANK Tiles
     	for (int x = 0; x < mXTileCount; x++) {
     		for (int y = 0; y < mYTileCount; y++) {
     			Tile current = findTile(x,y);

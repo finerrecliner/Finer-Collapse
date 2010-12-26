@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/com.finercollapse"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	
+	<RelativeLayout
+		android:id="@+id/Game" 
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+
+		<TextView
+			android:id="@+id/Score" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content"/>
+		    
+		<FrameLayout
+			android:id="@+id/Board_Layout" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content" >
+		    
+			<com.finercollapse.GameView
+				android:id="@+id/Board"
+				android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    app:tileSize="12"/>
+			     
+		</FrameLayout>
+	</RelativeLayout> 
+</FrameLayout>

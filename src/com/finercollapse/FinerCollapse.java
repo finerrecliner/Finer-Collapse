@@ -1,7 +1,9 @@
 package com.finercollapse;
 
+import com.finercollapse.Constants.Difficulty;
 import com.finercollapse.GameView.States;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,7 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class FinerCollapse extends Activity {
-    private GameView gameView;
+
 	
     /* (non-Javadoc)
      * @see android.app.Activity#onCreate(android.os.Bundle)
@@ -21,45 +23,43 @@ public class FinerCollapse extends Activity {
 
         setContentView(R.layout.main);
         
-        /* setup buttons on Main Menu */
         final Button easyButton = (Button) findViewById(R.id.easyBtn);
         final Button medButton = (Button) findViewById(R.id.medBtn);
-        final Button loseButton = (Button) findViewById(R.id.LoseBtn);
         
         easyButton.setOnClickListener(startGame);
         medButton.setOnClickListener(startGame);
-        loseButton.setOnClickListener(goToMainMenu);
         
-        gameView = (GameView) findViewById(R.id.Board);
-        gameView.setLoseView((LinearLayout) findViewById(R.id.LoseView));
-        gameView.setMainMenu((LinearLayout) findViewById(R.id.Main_Menu));
-        gameView.setScoreView((TextView) findViewById(R.id.Score));
-        
-        gameView.setState(States.READY);
+        //OLD
+
+//        final Button loseButton = (Button) findViewById(R.id.LoseBtn);
+//        
+//        loseButton.setOnClickListener(goToMainMenu);
+//        
+//        gameView = (GameView) findViewById(R.id.Board);
+//        gameView.setLoseView((LinearLayout) findViewById(R.id.LoseView));
+//        gameView.setMainMenu((LinearLayout) findViewById(R.id.Main_Menu));
+//        gameView.setScoreView((TextView) findViewById(R.id.Score));
+//        
+//        gameView.setState(States.READY);
         
     }
     
     private OnClickListener startGame = new OnClickListener() {
 		public void onClick(View v) {
-			int difficulty = v.getId();
+			int btn = v.getId();
+			Intent intent = new Intent();
 			
-			switch (difficulty) {
-			case R.id.easyBtn: 
-				gameView.initNewGame(Constants.Difficulty.EASY);
-				break;
-			case R.id.medBtn: 
-				gameView.initNewGame(Constants.Difficulty.MEDIUM);
-				break;
-			default:
-				return;
-			}
+			intent.setClass(FinerCollapse.this, com.finercollapse.PlayGame.class);
+			intent.putExtra("btn_pressed", btn);
+			startActivity(intent);
 		}
-	};
+	};   
+    
 	
-    private OnClickListener goToMainMenu = new OnClickListener() {
-		public void onClick(View v) {			
-			gameView.setState(States.READY);
-		}
-	};
+//    private OnClickListener goToMainMenu = new OnClickListener() {
+//		public void onClick(View v) {			
+//			gameView.setState(States.READY);
+//		}
+//	};
     
 }

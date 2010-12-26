@@ -1,5 +1,6 @@
 package com.finercollapse;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -176,6 +177,7 @@ public class TileView extends View {
      */
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    //protected void onMeasure(int w, int h) {
         mXTileCount = (int) Math.floor(w / mTileSize);
         mYTileCount = (int) Math.floor(h / mTileSize);
 
@@ -201,6 +203,9 @@ public class TileView extends View {
         					   getNearbyTile(t,  1,  0)); //right
         	}
         }
+
+        ((PlayGame) getContext()).startGame();
+        
     }
     
     /**
