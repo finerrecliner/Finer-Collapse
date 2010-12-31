@@ -5,17 +5,20 @@
 		<item>2</item>		<!-- prefilled rows -->
 		<item>3</item>		<!-- number of colors available for use -->
 		<item>10</item>		<!-- new row wait time (seconds) -->
+		<item>4</item>		<!-- min number of Tiles that must be cleared to avoid a new row -->
 	</integer-array>
 	
 	<integer-array name="medium">
 		<item>3</item>		<!-- prefilled rows -->
 		<item>3</item>		<!-- number of colors available for use -->
 		<item>10</item>		<!-- new row wait time (seconds) -->
+		<item>5</item>		<!-- min number of Tiles that must be cleared to avoid a new row -->
 	</integer-array>
 	
 	<integer-array name="hard">
 		<item>4</item>		<!-- prefilled rows -->
 		<item>3</item>		<!-- number of colors available for use -->
 		<item>10</item>		<!-- new row wait time (seconds) -->
+		<item>4</item>		<!-- min number of Tiles that must be cleared to avoid a new row -->
 	</integer-array>
 </resources>

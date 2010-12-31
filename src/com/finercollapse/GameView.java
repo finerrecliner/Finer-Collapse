@@ -138,6 +138,9 @@ public class GameView extends TileView {
     	 */
     	private void doNext() {
     		switch (mState) {
+    		case DROP_NEW_ROW:
+    			drop_new_row();
+    			break;
     		case DROP:
     			drop();
     			break;
@@ -154,12 +157,22 @@ public class GameView extends TileView {
     	 * If there are any, then stay in DROP state, to animate them.
     	 * Otherwise proceed to the next State
     	 */
-    	public void drop() {
+    	public void drop_new_row() {
     		boolean more = findTilesToAnimate();
     		
     		//if there isn't anything else to animate, do the post-animation stuff
     		if (!more) {
     			mHandler.post(mNewRow);
+    		}
+    	}
+    	
+    	//TODO documentation
+    	public void drop() {
+    		boolean more = findTilesToAnimate();
+    		
+    		//if there isn't anything else to animate, do the post-animation stuff
+    		if (!more) {
+    			setState(States.NEW_ROW);
     		}
     	}
     	
@@ -214,7 +227,8 @@ public class GameView extends TileView {
     	LOSE,
     	ANIMATE,
     	DROP,
-    	NEW_ROW,    	
+    	NEW_ROW,
+    	DROP_NEW_ROW,
     }
     
     /****************** End Structures ***********************/
@@ -321,8 +335,8 @@ public class GameView extends TileView {
     @Override
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
-    	boolean willAnim; //we found something to animate
     	Tile selected;
+    	int numberCleared;
     	
     	if (MotionEvent.ACTION_DOWN == action) {
     	
@@ -341,15 +355,22 @@ public class GameView extends TileView {
 	        	selected = findTile(x,y);
 	        	//check that the tile clicked was not blank
 	        	if (selected.getColor() != Color.BLANK) {
-	        		setState(States.DROP);
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
-		        	setMatchingNeighbors(selected, Color.BLANK);
-		        	willAnim = findTilesToAnimate();
+		        	numberCleared = setMatchingNeighbors(selected, Color.BLANK);
+//		        	if (findTilesToAnimate()) {
+//		        		setState(States.DROP);
+//		        	} else {
+//		        		setState(States.NEW_ROW);
+//		        	}
 		        	
-		        	// if nothing to animate from this click, don't forget to do this stuff anyways!
-		        	if (!willAnim) {
-		        		mHandler.post(mNewRow);
+		        	findTilesToAnimate();
+		        	if (numberCleared >= mSettings.getAvoidNewRow()) {
+		        		setState(States.DROP);
+		        	} else {
+		        		setState(States.DROP_NEW_ROW);
 		        	}
+		        	
+
 	        	}
 	        }
     	}
@@ -430,7 +451,7 @@ public class GameView extends TileView {
     		break;
     	}
     	
-    	mSettings = new Settings(difficulty, items[0], items[1], items[2]);
+    	mSettings = new Settings(difficulty, items[0], items[1], items[2], items[3]);
     }
     
 
@@ -441,10 +462,12 @@ public class GameView extends TileView {
      * 
      * @param sourceX
      * @param sourceY
+     * @return number of Tiles that were affected (including source)
      */
-    private void setMatchingNeighbors(Tile source, Color color) {
+    private int setMatchingNeighbors(Tile source, Color color) {
     	Queue<Tile> queue = new LinkedList<Tile>();
     	Tile[] adj; 
+    	int retval = 0;
     	
     	/* initialize for breadth first search */
     	for (int x = 0; x < mXTileCount; x++) {
@@ -476,8 +499,9 @@ public class GameView extends TileView {
     		current.setColor(color);
     		current.setBFSStatus(Tile.BFS.HANDLED);
     		incScore(10);
+    		retval++;
     	}
-    	return;
+    	return retval;
     }
         
     /**
@@ -504,7 +528,7 @@ public class GameView extends TileView {
     /**
      * Shift up the existing rows of Tiles on the Board,
      * and create a new row of random Tiles in the bottom row.
-     * This is process is animated
+     * This process is animated
      */
     private void newRow() {
     	//shift existing rows up

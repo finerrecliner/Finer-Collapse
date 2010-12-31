@@ -12,13 +12,13 @@ public final class R {
         public static final int slide_down=0x7f040000;
     }
     public static final class array {
-        /**  new row wait time (seconds) 
+        /**  min number of Tiles that must be cleared to avoid a new row 
          */
         public static final int easy=0x7f050000;
-        /**  new row wait time (seconds) 
+        /**  min number of Tiles that must be cleared to avoid a new row 
          */
         public static final int hard=0x7f050002;
-        /**  new row wait time (seconds) 
+        /**  min number of Tiles that must be cleared to avoid a new row 
          */
         public static final int medium=0x7f050001;
     }

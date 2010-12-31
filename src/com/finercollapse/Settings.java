@@ -27,6 +27,12 @@ public class Settings {
 	 */
 	private int addRowTime;
 	
+	/**
+	 * Minimum number of Tiles that must cleared on a click to 
+	 * avoid a new row being added
+	 */
+	private int avoidNewRow;
+	
 	
 	
 	/*************** End Private Attributes *******************/
@@ -40,12 +46,15 @@ public class Settings {
 	public Settings(Difficulty newDifficulty,
 					int newPrefilledRows,
 					int newColors,
-					int newAddRowTime)
+					int newAddRowTime,
+					int newAvoidNewRow)
 	{
 		difficulty = newDifficulty;
 		prefilledRows = newPrefilledRows;
 		colors = newColors;
-		addRowTime = newAddRowTime;		
+		addRowTime = newAddRowTime;
+		avoidNewRow = newAvoidNewRow;
+		
 	}
 
 
@@ -82,6 +91,15 @@ public class Settings {
 	 */
 	public int getAddRowTime() {
 		return addRowTime;
+	}
+
+
+
+	/**
+	 * @return the avoidNewRow
+	 */
+	public int getAvoidNewRow() {
+		return avoidNewRow;
 	}
 	
 	
