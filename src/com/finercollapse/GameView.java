@@ -357,11 +357,6 @@ public class GameView extends TileView {
 	        	if (selected.getColor() != Color.BLANK) {
 		        	//all touching tiles that have the same color as the clicked tile will be set to BLANK
 		        	numberCleared = setMatchingNeighbors(selected, Color.BLANK);
-//		        	if (findTilesToAnimate()) {
-//		        		setState(States.DROP);
-//		        	} else {
-//		        		setState(States.NEW_ROW);
-//		        	}
 		        	
 		        	findTilesToAnimate();
 		        	if (numberCleared >= mSettings.getAvoidNewRow()) {
@@ -369,8 +364,6 @@ public class GameView extends TileView {
 		        	} else {
 		        		setState(States.DROP_NEW_ROW);
 		        	}
-		        	
-
 	        	}
 	        }
     	}
@@ -421,10 +414,13 @@ public class GameView extends TileView {
         Resources r = getResources();
         
         resetTiles(Color.getSize());
-        loadTile(Color.RED, r.getDrawable(R.drawable.redstar));
-        loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellowstar));
-        loadTile(Color.GREEN, r.getDrawable(R.drawable.greenstar));
-        loadTile(Color.BLANK, r.getDrawable(R.drawable.blankstar));
+        loadTile(Color.RED, r.getDrawable(R.drawable.red));
+        loadTile(Color.YELLOW, r.getDrawable(R.drawable.yellow));
+        loadTile(Color.GREEN, r.getDrawable(R.drawable.green));
+        loadTile(Color.BLUE, r.getDrawable(R.drawable.blue));
+        loadTile(Color.DARK_BLUE, r.getDrawable(R.drawable.dark_blue));
+        loadTile(Color.PURPLE, r.getDrawable(R.drawable.purple));
+        loadTile(Color.BLANK, r.getDrawable(R.drawable.blank));
             
     }
     
@@ -520,7 +516,7 @@ public class GameView extends TileView {
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
-    		Color color = Color.getRandom();
+    		Color color = Color.getRandom(mSettings.getColors());
     		findTile(x, mYTileCount - 1).setColor(color);
     	}
     }
@@ -542,7 +538,7 @@ public class GameView extends TileView {
     	
     	//new row on bottom
     	for (int x = 0; x < mXTileCount; x++) {
-    		Color color = Color.getRandom();
+    		Color color = Color.getRandom(mSettings.getColors());
     		findTile(x, mYTileCount - 1).setColor(color);
     	}
     	

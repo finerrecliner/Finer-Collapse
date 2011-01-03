@@ -19,10 +19,13 @@ public class Constants {
     	BLANK,
     	RED,
     	YELLOW,
-    	GREEN;
+    	GREEN,
+    	BLUE,
+    	PURPLE,
+    	DARK_BLUE;
 
         private static final List<Color> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-        private static final int SIZE = VALUES.size();
+        private static final int SIZE = VALUES.size(); //TODO max size
     	
         /**
          * @return Tile's color represented a single character. <br>
@@ -35,6 +38,9 @@ public class Constants {
 	        	case RED: return 'r';
 	        	case YELLOW: return 'y';
 	        	case GREEN: return 'g';
+	        	case BLUE: return 'b';
+	        	case DARK_BLUE: return 'd';
+	        	case PURPLE: return 'p';
 	        	default: return 'X';	//error case
         	}
         }
@@ -44,12 +50,12 @@ public class Constants {
          * @return A random Color <br> 
          * NOTE: will not return BLANKs
          */
-        public static Color getRandom()  {
+        public static Color getRandom(int size)  {
         	/* get a random number 0 - (1-size),
         	 * then add one to it before getting its corresponding 
         	 * Color, so we get a Color other than the first defined.
         	 */ 
-        	return VALUES.get(RNG.nextInt(SIZE-1) + 1);
+        	return VALUES.get(RNG.nextInt(size-1) + 1);
         }
         
         /**

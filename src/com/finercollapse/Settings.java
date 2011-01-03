@@ -51,7 +51,7 @@ public class Settings {
 	{
 		difficulty = newDifficulty;
 		prefilledRows = newPrefilledRows;
-		colors = newColors;
+		colors = newColors + 1; //add 1 to compensate for BLANKs taking up a spot in the enum
 		addRowTime = newAddRowTime;
 		avoidNewRow = newAvoidNewRow;
 		
